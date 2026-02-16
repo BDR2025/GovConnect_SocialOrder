@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GovConnect · Social Order Demo</title>
+  <script>
+    (function(){
+      try{
+        const t = localStorage.getItem("social_order_theme") || "light";
+        document.documentElement.setAttribute("data-theme", t);
+      }catch(e){}
+    })();
+  </script>
+  <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="icon-btn" id="btn-burger" aria-label="Menü">
+          <span class="icon icon--burger" aria-hidden="true"></span>
+        </button>
+        <div class="brand">
+          <span class="brand__logo" aria-hidden="true"></span>
+          <span class="brand__name">GovConnect</span>
+          <span class="brand__badge">Demo</span>
+        </div>
+        <div class="search">
+          <span class="icon icon--search" aria-hidden="true"></span>
+          <input id="global-search" type="search" placeholder="Schnellsuche…" autocomplete="off" />
+        </div>
+      </div>
+
+      <nav class="topnav" aria-label="Hauptnavigation">
+        <a href="#/home" class="topnav__item" data-route="/home"><span class="icon icon--home"></span><span>Startseite</span></a>
+        <a href="#/chronik" class="topnav__item" data-route="/chronik"><span class="icon icon--chronik"></span><span>Chronik</span></a>
+        <a href="#/personen" class="topnav__item" data-route="/personen"><span class="icon icon--person"></span><span>Personen</span></a>
+        <a href="#/bereiche" class="topnav__item" data-route="/bereiche"><span class="icon icon--grid"></span><span>Bereiche</span></a>
+        <a href="#/dokumente" class="topnav__item" data-route="/dokumente"><span class="icon icon--doc"></span><span>Dokumente</span></a>
+        <a href="#/apps" class="topnav__item" data-route="/apps"><span class="icon icon--apps"></span><span>Apps</span></a>
+      </nav>
+
+	      <div class="topbar__right">
+	        <button class="theme-switch" id="btn-theme" type="button" aria-label="Theme umschalten" title="Theme umschalten">
+	          <span class="theme-switch__text" id="theme-switch-text">Hell</span>
+	        </button>
+
+        <button class="icon-btn" id="btn-activity" aria-label="Aktivität">
+          <span class="icon icon--bell" aria-hidden="true"></span>
+          <span class="badge" id="activity-badge" aria-label="Neue Aktivitäten">1</span>
+        </button>
+
+        <button class="avatar" id="btn-profile" aria-label="Profil">
+          <span>SO</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar__section">
+          <div class="sidebar__title">Organisation</div>
+          <div class="sidebar__org">
+            <div class="sidebar__orgLogo" aria-hidden="true"></div>
+          <div class="sidebar__orgText">
+            <div class="sidebar__orgName" data-org-name>Kreisstadt Exempla</div>
+            <div class="sidebar__orgSub" data-org-sub>Stadtverwaltung</div>
+          </div>
+          </div>
+
+        
+
+        <div class="sidebar__section">
+          <div class="sidebar__title">Orte</div>
+          <a class="sidebar__item" href="#/feed" data-route="/feed"><span class="dot"></span>Neuigkeiten</a>
+          <a class="sidebar__item" href="#/newsroom" data-route="/newsroom"><span class="dot dot--blue"></span>Newsroom</a>
+          <a class="sidebar__item" href="#/gruppen" data-route="/gruppen"><span class="dot dot--violet"></span>Gruppen</a>
+          <a class="sidebar__item" href="#/projekte" data-route="/projekte"><span class="dot dot--green"></span>Projekte</a>
+        </div>
+
+      <div class="sidebar__section sidebar__section--app" id="sidebar-app">
+          <div class="sidebar__title">App</div>
+          <a class="sidebar__item sidebar__item--active" href="#/app" data-route="/app">
+            <span class="icon icon--cart"></span>
+            Social Order
+          </a>
+          <div class="sidebar__sub">
+            <a class="sidebar__subItem" href="#/app/start" data-route="/app/start">Übersicht</a>
+            <a class="sidebar__subItem" href="#/app/new" data-route="/app/new">Neue Anforderung</a>
+            <a class="sidebar__subItem" href="#/app/orders" data-route="/app/orders">Meine Anforderungen</a>
+            <a class="sidebar__subItem" href="#/app/approvals" data-route="/app/approvals" data-role="approver">Freigaben</a>
+            <a class="sidebar__subItem" href="#/app/batch" data-route="/app/batch" data-role="central">Bestelllauf</a>
+            <a class="sidebar__subItem" href="#/app/dashboard" data-route="/app/dashboard" data-role="lead">Dashboard</a>
+          </div>
+        </div>
+
+        <div class="sidebar__footer">
+          <a class="sidebar__footerLink" href="#/about" data-route="/about">Info</a>
+        </div>
+      </aside>
+
+      <main class="content" id="app-content" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="1"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal__header">
+        <div class="modal__title" id="modal-title">Details</div>
+        <div class="modal__actions">
+          <button class="btn" id="modal-print" type="button" hidden title="Drucken / als PDF speichern" aria-label="Drucken / als PDF speichern">
+            <span class="icon icon--doc" aria-hidden="true"></span>
+            <span>PDF</span>
+          </button>
+          <button class="icon-btn" id="modal-close" aria-label="Schließen"><span class="icon icon--close"></span></button>
+        </div>
+      </div>
+      <div class="modal__body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div class="print-root" id="print-root" aria-hidden="true"></div>
+
+  <!-- Templates -->
+  <template id="tpl-app-start">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Social Order</h1>
+          <p class="muted">Demo eines bestellbaren Bürobedarfs-Prozesses im Social-Intranet-Rahmen.</p>
+        </div>
+        <div class="page__actions">
+          <a class="btn btn--primary" href="#/app/new">Neue Anforderung</a>
+          <a class="btn" href="#/app/orders">Meine Anforderungen</a>
+        </div>
+      </div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <div class="card__kpi">
+            <div class="kpi__label">Nächster Bestelllauf</div>
+            <div class="kpi__value" id="kpi-cutoff">Di 11:00</div>
+          </div>
+          <div class="card__foot muted">Cut-off für Bündelung und zentrale Bestellung.</div>
+        </div>
+
+        <div class="card">
+          <div class="card__kpi">
+            <div class="kpi__label">Offen</div>
+            <div class="kpi__value" id="kpi-open">–</div>
+          </div>
+          <div class="card__foot muted">Ihre Anforderungen, die noch nicht abgeschlossen sind.</div>
+        </div>
+
+        <div class="card">
+          <div class="card__kpi">
+            <div class="kpi__label">In Freigabe</div>
+            <div class="kpi__value" id="kpi-approval">–</div>
+          </div>
+          <div class="card__foot muted">Anforderungen mit Gate im Amt.</div>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">Schnellaktionen</div>
+          <div class="card__body">
+            <div class="quick">
+              <a class="quick__item" href="#/app/new">
+                <span class="icon icon--plus"></span>
+                <div>
+                  <div class="quick__title">Neue Anforderung</div>
+                  <div class="muted">Standardartikel auswählen und absenden.</div>
+                </div>
+              </a>
+
+              <a class="quick__item" href="#/app/orders">
+                <span class="icon icon--list"></span>
+                <div>
+                  <div class="quick__title">Meine Anforderungen</div>
+                  <div class="muted">Status, Historie und Details ansehen.</div>
+                </div>
+              </a>
+
+              <a class="quick__item" href="#/app/dashboard" data-role="lead">
+                <span class="icon icon--chart"></span>
+                <div>
+                  <div class="quick__title">Dashboard</div>
+                  <div class="muted">KPIs und Steuerungssicht.</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Warum das im Intranet funktioniert</div>
+          <div class="card__body">
+            <ul class="bullets">
+              <li>Vertrautes Umfeld, geringe Einstiegshürde.</li>
+              <li>Gate-Logik als schlanke Freigabe, Standardfälle werden schnell.</li>
+              <li>Bündelung im Bestelllauf senkt Prozesskosten.</li>
+              <li>Transparenz über Status, Audit-Trail und KPIs.</li>
+            </ul>
+            <div class="callout">
+              <div class="callout__title">Hinweis</div>
+              <div class="callout__text">Alle Daten sind Mock-Daten und dienen nur der Darstellung.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-app-new">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Neue Anforderung</h1>
+          <p class="muted">Standardbedarf erfassen. Sonderbedarf bleibt bewusst als Ausnahme sichtbar.</p>
+        </div>
+        <div class="page__actions">
+          <a class="btn" href="#/app/orders">Abbrechen</a>
+          <button class="btn btn--primary" id="btn-submit-order">Absenden</button>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">Artikel (Standardkatalog)</div>
+          <div class="card__body">
+            <div class="catalogTools">
+              <div class="search search--small">
+                <span class="icon icon--search" aria-hidden="true"></span>
+                <input id="catalog-search" type="search" placeholder="Artikel suchen…" autocomplete="off" />
+              </div>
+              <div class="filters" id="catalog-groups"></div>
+            </div>
+
+            <div class="catalog" id="catalog"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Anforderung</div>
+          <div class="card__body">
+            <div class="form">
+              <div class="form__row">
+                <label class="label">Organisationseinheit</label>
+                <select id="f-org"></select>
+                <div class="muted small">Hinweis: Im Livebetrieb wird die Organisationseinheit aus dem Benutzerprofil (Current User) abgeleitet.</div>
+              </div>
+              <div class="form__row">
+                <label class="label">Fachbereich</label>
+                <input id="f-dept" type="text" value="–" readonly />
+              </div>
+              <div class="form__row">
+                <label class="label">Kostenstelle</label>
+                <select id="f-cost"></select>
+              </div>
+              <div class="form__row">
+                <label class="label">Verwendungszweck / Bestellgrund</label>
+                <textarea id="f-purpose" rows="2" placeholder="z.B. öffentlicher Kopierer im Flur, Projekt XY, Ersatzbedarf…"></textarea>
+              </div>
+              <div class="form__row">
+                <label class="label">Lieferort</label>
+                <input id="f-loc" type="text" list="loc-list" placeholder="z.B. Rathaus (Haus A) · Raum 2.14" />
+                <datalist id="loc-list"></datalist>
+                <div class="muted small">Tipp: In der Demo frei editierbar – im Livebetrieb typischerweise aus Profil/Standort ableitbar.</div>
+              </div>
+              <div class="form__row">
+                <label class="label">Dringlichkeit</label>
+                <select id="f-urgency">
+                  <option value="normal" selected>Normal</option>
+                  <option value="soon">Bald</option>
+                  <option value="urgent">Dringend</option>
+                </select>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row row--space">
+                <div>
+                  <div class="label">Warenkorb</div>
+                  <div class="muted">Klicken Sie Artikel links, um sie hinzuzufügen.</div>
+                  <div class="muted small" id="cart-supplier">Lieferant: –</div>
+                </div>
+                <div class="pill" id="cart-count">0 Positionen</div>
+              </div>
+
+              <div class="cart" id="cart"></div>
+
+              <div class="divider"></div>
+
+              <div class="row row--space">
+                <div class="label">Summe</div>
+                <div class="price" id="cart-total">0,00 €</div>
+              </div>
+
+              <details class="details" id="details-exception">
+                <summary>Sonderbedarf (Ausnahme)</summary>
+                <div class="muted">Dieser Weg ist absichtlich „extra“, damit Standards dominieren.</div>
+                <div class="callout callout--warn" id="special-hint" style="display:none;">
+                  <div class="callout__title">Sonderbedarf erforderlich</div>
+                  <div class="callout__text" id="special-hint-text">Für ausgewählte Artikel ist eine Begründung nötig.</div>
+                </div>
+                <textarea id="f-exception" rows="4" placeholder="Begründung für Sonderbedarf…"></textarea>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-app-orders">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Meine Anforderungen</h1>
+          <p class="muted">Status, Historie und Details. Klick auf eine Zeile öffnet die Detailansicht.</p>
+        </div>
+        <div class="page__actions">
+          <a class="btn btn--primary" href="#/app/new">Neue Anforderung</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__body">
+          <div class="row row--space">
+            <div class="filters">
+              <button class="chip chip--active" data-filter="all">Alle</button>
+              <button class="chip" data-filter="open">Offen</button>
+              <button class="chip" data-filter="approval">In Freigabe</button>
+              <button class="chip" data-filter="question">Rückfrage</button>
+              <button class="chip" data-filter="done">Abgeschlossen</button>
+            </div>
+            <div class="search search--small">
+              <span class="icon icon--search"></span>
+              <input id="orders-search" type="search" placeholder="Suchen…" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table" id="orders-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Datum</th>
+                  <th>Status</th>
+                  <th>Owner</th>
+                  <th>Lieferanten</th>
+                  <th>Positionen</th>
+                  <th class="right">Summe</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="muted small" id="orders-footnote"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-app-approvals">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Freigaben</h1>
+          <p class="muted">Gate im Amt. Standardfälle sollen schnell durchlaufen.</p>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">Eingang</div>
+          <div class="card__body">
+            <div id="approvals-list"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card__title">Prüfung</div>
+          <div class="card__body" id="approvals-detail"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-app-batch">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Bestelllauf</h1>
+          <p class="muted">Bündelung, damit aus vielen Anforderungen wenige Bestellungen werden.</p>
+        </div>
+        <div class="page__actions">
+          <button class="btn btn--primary" id="btn-run-batch">Bestelllauf simulieren</button>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">Eingang</div>
+          <div class="card__body" id="batch-in"></div>
+        </div>
+        <div class="card">
+          <div class="card__title">Nach Bündelung</div>
+          <div class="card__body" id="batch-out"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-app-dashboard">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Dashboard</h1>
+          <p class="muted">Leitungssicht: <strong>Steuerung</strong> (Backlog &amp; Status) und <strong>Lagebild</strong> (Volumen, Mix, Trend) – jeweils filterbar nach Fachbereich/Amt.</p>
+        </div>
+      </div>
+
+      <div class="dashTabs" role="tablist" aria-label="Dashboard Ansicht">
+        <button class="dashTab" type="button" role="tab" data-dash-tab="now" aria-selected="true">Steuerung</button>
+        <button class="dashTab" type="button" role="tab" data-dash-tab="period" aria-selected="false">Lagebild</button>
+        <button class="dashTab" type="button" role="tab" data-dash-tab="analysis" aria-selected="false">Analyse</button>
+      </div>
+
+      <!-- STEUERUNG -->
+      <section class="dashPanel" id="dash-panel-now" role="tabpanel">
+        <div class="muted small" id="dash-now-filterLabel" style="margin:0 0 10px;"></div>
+        <div class="grid grid--3">
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">In Freigabe</div>
+              <div class="kpi__value" id="dash-now-inApproval">–</div>
+            </div>
+            <div class="card__foot muted">Backlog im Gate.</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Rückfragen</div>
+              <div class="kpi__value" id="dash-now-questions">–</div>
+            </div>
+            <div class="card__foot muted">Blockierte Fälle mit Klärungsbedarf.</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Bereit zur Bündelung</div>
+              <div class="kpi__value" id="dash-now-ready">–</div>
+            </div>
+            <div class="card__foot muted">Freigegebene Anforderungen.</div>
+          </div>
+        </div>
+
+        <div class="grid grid--2">
+          <div class="card">
+            <div class="card__title">Status-Lagebild</div>
+            <div class="card__body">
+              <div class="barChart" id="dash-now-statusChart"></div>
+              <div class="muted small" style="margin-top:10px;">
+                Interpretation: Wo staut es sich? Was kann Leitung priorisieren (Freigaben, Rückfragen, Bestelllauf)?
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__title">Nächster Bestelllauf</div>
+            <div class="card__body">
+              <div class="callout" style="margin-bottom:12px;">
+                <div class="callout__title">Cut-off</div>
+                <div class="callout__text">Bündelung erfolgt zum nächsten Termin: <strong id="dash-now-cutoff">–</strong></div>
+              </div>
+
+              <div class="kpiRow">
+                <div class="kpiRow__item">
+                  <div class="kpiRow__label">Lieferanten betroffen</div>
+                  <div class="kpiRow__value" id="dash-now-suppliers">–</div>
+                </div>
+                <div class="kpiRow__item">
+                  <div class="kpiRow__label">Volumen (bereit)</div>
+                  <div class="kpiRow__value" id="dash-now-readyValue">–</div>
+                </div>
+              </div>
+
+              <div class="muted small" style="margin-top:10px;">
+                Basis: freigegebene Anforderungen. Der Bestelllauf splittet automatisch pro Lieferant.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAGEBILD -->
+      <section class="dashPanel is-hidden" id="dash-panel-period" role="tabpanel">
+        <div class="card" id="dash-period-filters" style="margin-bottom:14px;">
+          <div class="card__body">
+            <div class="dashFilters">
+              <div class="segmented" id="dash-presets" aria-label="Zeitraum Auswahl">
+                <button type="button" class="segmented__btn" data-preset="7">7 Tage</button>
+                <button type="button" class="segmented__btn" data-preset="30">30 Tage</button>
+                <button type="button" class="segmented__btn" data-preset="90">90 Tage</button>
+                <button type="button" class="segmented__btn" data-preset="custom">Custom</button>
+              </div>
+
+              <div class="dashFilters__right">
+                <div class="dashField">
+                  <label class="muted small" for="dash-dept">Fachbereich</label>
+                  <select id="dash-dept"></select>
+                </div>
+                <div class="dashField">
+                  <label class="muted small" for="dash-unit">Amt</label>
+                  <select id="dash-unit"></select>
+                </div>
+                <div class="dashField">
+                  <label class="muted small" for="dash-from">Von</label>
+                  <input id="dash-from" type="date" />
+                </div>
+                <div class="dashField">
+                  <label class="muted small" for="dash-to">Bis</label>
+                  <input id="dash-to" type="date" />
+                </div>
+                <button class="btn btn--primary" id="dash-apply" type="button">Anwenden</button>
+              </div>
+            </div>
+            <div class="muted small" id="dash-range-label" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <div class="grid grid--3">
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Anforderungen</div>
+              <div class="kpi__value" id="dash-per-reqCount">–</div>
+            </div>
+            <div class="card__foot muted">Mit Bestellung im Zeitraum.</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Bestellungen (POs)</div>
+              <div class="kpi__value" id="dash-per-poCount">–</div>
+            </div>
+            <div class="card__foot muted">Ausgelöst im Zeitraum (PO-Teile).</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Bestellwert</div>
+              <div class="kpi__value" id="dash-per-poValue">–</div>
+            </div>
+            <div class="card__foot muted">Summe der PO-Teile (nach Lieferant).</div>
+          </div>
+        </div>
+
+        <div class="grid grid--2">
+          <div class="card">
+            <div class="card__title" id="dash-per-mixTitle">Mix</div>
+            <div class="card__body">
+              <div class="dashMiniRow">
+                <div class="segmented segmented--sm" id="dash-mix-dim" aria-label="Dimension">
+                  <button type="button" class="segmented__btn" data-dim="vendor">Lieferant</button>
+                  <button type="button" class="segmented__btn" data-dim="contract">Rahmenvertrag</button>
+                </div>
+                <div class="segmented segmented--sm" id="dash-mix-metric" aria-label="Kennzahl">
+                  <button type="button" class="segmented__btn" data-metric="value">Bestellwert</button>
+                  <button type="button" class="segmented__btn" data-metric="count">Anzahl POs</button>
+                </div>
+              </div>
+              <div class="donutWrap">
+                <div class="donut" id="dash-per-pie" aria-label="Bestellwert nach Lieferant"></div>
+                <div class="donutLegend" id="dash-per-pieLegend"></div>
+              </div>
+              <div class="muted small" id="dash-per-pieHint" style="margin-top:10px;"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__title">Trend Bestellwert</div>
+            <div class="card__body">
+              <div class="lineChart" id="dash-per-line"></div>
+              <div class="muted small" id="dash-per-lineHint" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid--3">
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Ø Wert pro PO</div>
+              <div class="kpi__value" id="dash-per-avgPo">–</div>
+            </div>
+            <div class="card__foot muted">Bestellwert / #POs.</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Ø Anforderungen je PO</div>
+              <div class="kpi__value" id="dash-per-bundle">–</div>
+            </div>
+            <div class="card__foot muted">Anforderungen mit Bestellung / #POs (im Zeitraum).</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Split-Quote</div>
+              <div class="kpi__value" id="dash-per-split">–</div>
+            </div>
+            <div class="card__foot muted">Anteil Anforderungen mit mehreren POs (Multi-Lieferant).</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout__title">Hinweis</div>
+          <div class="callout__text">Alle Kennzahlen basieren auf Mock-Daten und den in der Demo ausgelösten Bestellungen (POs).</div>
+        </div>
+      </section>
+
+      <!-- ANALYSE -->
+      <section class="dashPanel is-hidden" id="dash-panel-analysis" role="tabpanel">
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card__body">
+            <div class="dashMiniRow" style="margin-bottom:0;">
+              <div class="segmented segmented--sm" id="dash-ana-metric" aria-label="Kennzahl">
+                <button type="button" class="segmented__btn" data-metric="value">Bestellwert</button>
+                <button type="button" class="segmented__btn" data-metric="count">Anzahl POs</button>
+              </div>
+              <button class="btn" id="dash-ana-jumpFilters" type="button">Filter ändern</button>
+            </div>
+            <div class="muted small" id="dash-ana-context" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <div class="grid grid--2">
+          <div class="card">
+            <div class="card__title">Top Ämter</div>
+            <div class="card__body">
+              <div class="barChart barChart--wide" id="dash-ana-topOrgs"></div>
+              <div class="muted small" id="dash-ana-topOrgsHint" style="margin-top:10px;"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__title">Top Kostenstellen</div>
+            <div class="card__body">
+              <div class="barChart barChart--wide" id="dash-ana-topCosts"></div>
+              <div class="muted small" id="dash-ana-topCostsHint" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:14px;">
+          <div class="callout__title">Tipp</div>
+          <div class="callout__text">Für einen Ämtervergleich: Fachbereich auf <strong>Alle</strong> und Amt auf <strong>Alle</strong> setzen.</div>
+        </div>
+      </section>
+    </div>
+  </template>
+
+  
+  <template id="tpl-chronik">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Chronik</h1>
+          <p class="muted">Aktivitäten und Prozessereignisse (Mock-Feed).</p>
+        </div>
+        <div class="page__actions">
+          <button class="btn" id="btn-chronik-markread">Als gelesen markieren</button>
+          <a class="btn btn--primary" href="#/app/start">Zur App</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__body">
+          <div class="feed" id="chronik-feed"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-shell-home">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Startseite</h1>
+          <p class="muted">Social Intranet der <span data-org-name>Kreisstadt Exempla</span> (Demo). Schnelle Orientierung, Neuigkeiten und Zugriff auf Apps.</p>
+        </div>
+        <div class="page__actions">
+          <a class="btn btn--primary" href="#/apps"><span class="icon icon--apps" aria-hidden="true"></span> Apps öffnen</a>
+        </div>
+      </div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <div class="card__title">Neuigkeiten</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item">
+                <div class="shellList__title">Rathaus: Umbau Flur A2 – Hinweise zur Erreichbarkeit</div>
+                <div class="shellList__meta">Heute · Gebäudemanagement</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Dienstanweisung: Beschaffung &amp; Rahmenverträge aktualisiert</div>
+                <div class="shellList__meta">Gestern · Zentrale Steuerung</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">IT: Wartungsfenster am Freitag 18:00–20:00</div>
+                <div class="shellList__meta">Vor 2 Tagen · IT‑Service</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Heute</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item">
+                <div class="shellList__title">Jour fixe Digitalisierung</div>
+                <div class="shellList__meta">10:00 · Raum B‑2.12</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Bürgerbüro: Spitzenzeiten erwartet</div>
+                <div class="shellList__meta">Hinweis · Amt 21</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Posteingang – Abholung</div>
+                <div class="shellList__meta">Bis 15:00 · Haus A</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Schnellzugriff</div>
+          <div class="card__body">
+            <div class="appTiles">
+              <a class="appTile appTile--primary" href="#/app/start">
+                <div class="appTile__icon"><span class="icon icon--cart"></span></div>
+                <div>
+                  <div class="appTile__name">Social Order</div>
+                  <div class="appTile__meta">Bürobedarf &amp; Bestellung</div>
+                </div>
+              </a>
+              <div class="appTile appTile--disabled">
+                <div class="appTile__icon"><span class="icon icon--grid"></span></div>
+                <div>
+                  <div class="appTile__name">Raumbuchung</div>
+                  <div class="appTile__meta">Räume &amp; Ausstattung</div>
+                </div>
+              </div>
+              <div class="appTile appTile--disabled">
+                <div class="appTile__icon"><span class="icon icon--grid"></span></div>
+                <div>
+                  <div class="appTile__name">Dienstfahrrad</div>
+                  <div class="appTile__meta">Reservierung</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">Aktivitäten (Auszug)</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item">
+                <div class="shellList__title">SO‑1047 abgeschlossen (PO‑2026‑2007)</div>
+                <div class="shellList__meta">Heute · Social Order</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Neue Rückfrage im Gate (Amt 13)</div>
+                <div class="shellList__meta">Gestern · Freigabe</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Bestelllauf gestartet (Bündelung)</div>
+                <div class="shellList__meta">Vor 2 Tagen · Zentrale Beschaffung</div>
+              </div>
+            </div>
+            <div class="row row--space" style="margin-top:12px;">
+              <div class="muted small">Aus der Chronik (Mock-Feed).</div>
+              <a class="btn" href="#/chronik">Zur Chronik</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Dokumente (zuletzt)</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item">
+                <div class="shellList__title">Rahmenvertrag_Buerobedarf_2026.pdf</div>
+                <div class="shellList__meta">Vor 1 Tag · Geteilt mit „Zentrale Steuerung“</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Dienstanweisung_Beschaffung.docx</div>
+                <div class="shellList__meta">Vor 3 Tagen · Stadtverwaltung</div>
+              </div>
+              <div class="shellList__item">
+                <div class="shellList__title">Projekt_SocialOrder_Status.pptx</div>
+                <div class="shellList__meta">Letzte Woche · Projekt Digitalisierung</div>
+              </div>
+            </div>
+            <div class="row row--space" style="margin-top:12px;">
+              <div class="muted small">Dokumente sind in dieser Demo reine Screens.</div>
+              <a class="btn" href="#/dokumente">Öffnen</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="callout__title">Hinweis</div>
+        <div class="callout__text">Startseite/Personen/Bereiche/Dokumente/Apps sind in dieser Demo bewusst nicht funktional. Interaktiv ist die App <strong>Social Order</strong>.</div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-shell-personen">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Personen</h1>
+          <p class="muted">Verzeichnis, Chat und Kommunikation (nur Darstellung).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__body">
+          <div class="row row--space" style="margin-bottom:10px;">
+            <div class="filters">
+              <button class="chip chip--active" data-people-tab="directory">Personen</button>
+              <button class="chip" data-people-tab="chats">Chats</button>
+              <button class="chip" data-people-tab="calls">Anrufe</button>
+              <button class="chip" data-people-tab="video">Video</button>
+            </div>
+            <div class="search search--small">
+              <span class="icon icon--search"></span>
+              <input id="people-search" type="search" placeholder="Personen suchen…" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="people" id="people-panels">
+            <section class="people__panel is-active" data-people-panel="directory">
+              <div class="peopleToolbar">
+                <div class="peopleToolbar__left">
+                  <div class="form__row" style="min-width:300px;">
+                    <div class="label">Amt / Einheit</div>
+                    <select id="people-filter-unit">
+                      <option value="all">Alle</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="peopleToolbar__right">
+                  <div class="peoplePager" aria-label="Seitenwechsel">
+                    <button class="btn btn--small" id="people-prev" type="button" aria-label="Vorherige Seite">&lsaquo;</button>
+                    <div class="muted" id="people-pageinfo">Seite 1 / 1</div>
+                    <button class="btn btn--small" id="people-next" type="button" aria-label="Nächste Seite">&rsaquo;</button>
+                  </div>
+                </div>
+              </div>
+              <div class="peopleLeadership" id="people-leadership"></div>
+              <div class="peopleGrid" id="people-grid"></div>
+              <div class="muted small" id="people-count" style="margin-top:10px;"></div>
+              <div class="muted small" style="margin-top:6px;">Hinweis: Kontakte &amp; Kommunikationsfunktionen sind in dieser Demo nicht implementiert.</div>
+            </section>
+
+            <section class="people__panel" data-people-panel="chats">
+              <div class="shellList">
+                <div class="shellList__item"><div class="shellList__title">Anna Krüger · „Kannst du kurz…?“</div><div class="shellList__meta">Heute 09:12</div></div>
+                <div class="shellList__item"><div class="shellList__title">Tim Becker · „Bestelllauf ist durch“</div><div class="shellList__meta">Gestern 16:48</div></div>
+                <div class="shellList__item"><div class="shellList__title">IT‑Service · „Ticket #1842 Rückfrage“</div><div class="shellList__meta">Vor 2 Tagen</div></div>
+              </div>
+            </section>
+
+            <section class="people__panel" data-people-panel="calls">
+              <div class="shellList">
+                <div class="shellList__item"><div class="shellList__title">Ausgehend · Max Sommer</div><div class="shellList__meta">Heute 08:40 · 3:12</div></div>
+                <div class="shellList__item"><div class="shellList__title">Eingehend · Zentrale Steuerung</div><div class="shellList__meta">Gestern · 7:05</div></div>
+                <div class="shellList__item"><div class="shellList__title">Verpasst · Lea Hoffmann</div><div class="shellList__meta">Vor 3 Tagen</div></div>
+              </div>
+            </section>
+
+            <section class="people__panel" data-people-panel="video">
+              <div class="shellList">
+                <div class="shellList__item"><div class="shellList__title">Jour fixe Digitalisierung</div><div class="shellList__meta">Heute 10:00 · Video‑Call</div></div>
+                <div class="shellList__item"><div class="shellList__title">Projekt Social Order – Review</div><div class="shellList__meta">Morgen 14:00 · Video‑Call</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-shell-bereiche">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Bereiche</h1>
+          <p class="muted">Teamräume, Gruppen und Projekte (nur Darstellung).</p>
+        </div>
+      </div>
+
+      <div class="grid grid--3">
+        <div class="card">
+          <div class="card__title">Fachbereiche</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item"><div class="shellList__title">Zentrale Steuerung</div><div class="shellList__meta">Amt 10 · 12 Mitglieder</div></div>
+              <div class="shellList__item"><div class="shellList__title">Bürgerservice und Ordnung</div><div class="shellList__meta">Ämter 20–22 · 45 Mitglieder</div></div>
+              <div class="shellList__item"><div class="shellList__title">Soziales, Bildung und Kultur</div><div class="shellList__meta">Ämter 40–42 · 38 Mitglieder</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Projekte</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item"><div class="shellList__title">Projekt Digitalisierung 2026</div><div class="shellList__meta">Status: laufend</div></div>
+              <div class="shellList__item"><div class="shellList__title">E‑Akte Rollout</div><div class="shellList__meta">Status: Planung</div></div>
+              <div class="shellList__item"><div class="shellList__title">Beschaffung – Prozessoptimierung</div><div class="shellList__meta">Status: Umsetzung</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Gruppen</div>
+          <div class="card__body">
+            <div class="shellList">
+              <div class="shellList__item"><div class="shellList__title">Newsroom</div><div class="shellList__meta">Redaktion</div></div>
+              <div class="shellList__item"><div class="shellList__title">IT‑Hinweise</div><div class="shellList__meta">Service &amp; Wartung</div></div>
+              <div class="shellList__item"><div class="shellList__title">Organisation &amp; Personal</div><div class="shellList__meta">Austausch</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="callout__title">Hinweis</div>
+        <div class="callout__text">Bereiche sind in dieser Demo nicht interaktiv. Sie dienen nur als glaubwürdiger Intranet‑Rahmen.</div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-shell-dokumente">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Dokumente</h1>
+          <p class="muted">Ablage &amp; Suche (Drive‑Look, nur Darstellung).</p>
+        </div>
+        <div class="page__actions">
+          <button class="btn" type="button" disabled>Neu</button>
+          <button class="btn btn--primary" type="button" disabled>Hochladen</button>
+        </div>
+      </div>
+
+      <div class="drive">
+        <aside class="drive__side">
+          <div class="drive__sideTitle">Navigation</div>
+          <div class="driveNav">
+            <div class="driveNav__item is-active">Meine Ablage</div>
+            <div class="driveNav__item">Geteilt mit mir</div>
+            <div class="driveNav__item">Teamräume</div>
+            <div class="driveNav__item">Projekte</div>
+            <div class="driveNav__item">Archiv</div>
+          </div>
+          <div class="divider"></div>
+          <div class="muted small">Hinweis: In der Demo sind Dokumente nicht echt, die Ansicht ist rein visuell.</div>
+        </aside>
+
+        <div class="drive__main">
+          <div class="row row--space" style="margin-bottom:10px;">
+            <div class="search search--small" style="min-width:260px;">
+              <span class="icon icon--search"></span>
+              <input type="search" placeholder="Dokumente durchsuchen…" autocomplete="off" />
+            </div>
+            <div class="muted small">Ansicht: <strong>Meine Ablage</strong></div>
+          </div>
+
+          <div class="driveFolders">
+            <div class="driveFolder">
+              <div class="driveFolder__name">📁 Beschaffung</div>
+              <div class="driveFolder__meta">12 Dateien</div>
+            </div>
+            <div class="driveFolder">
+              <div class="driveFolder__name">📁 Vorlagen</div>
+              <div class="driveFolder__meta">7 Dateien</div>
+            </div>
+            <div class="driveFolder">
+              <div class="driveFolder__name">📁 Projekte</div>
+              <div class="driveFolder__meta">18 Dateien</div>
+            </div>
+          </div>
+
+          <div class="tableWrap" style="margin-top:12px;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Typ</th>
+                  <th>Geändert</th>
+                  <th>Besitzer</th>
+                  <th class="right">Größe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Rahmenvertrag_Buerobedarf_2026.pdf</td><td>PDF</td><td>Gestern</td><td>Zentrale Steuerung</td><td class="right">1,2 MB</td></tr>
+                <tr><td>Dienstanweisung_Beschaffung.docx</td><td>DOCX</td><td>Vor 3 Tagen</td><td>Amt 11</td><td class="right">420 KB</td></tr>
+                <tr><td>Leitfaden_Freigaben_und_Gate.pdf</td><td>PDF</td><td>Letzte Woche</td><td>Amt 13</td><td class="right">860 KB</td></tr>
+                <tr><td>Projekt_SocialOrder_Status.pptx</td><td>PPTX</td><td>Letzte Woche</td><td>Projekt Digitalisierung</td><td class="right">3,4 MB</td></tr>
+                <tr><td>AnhangA_Nutzerhandbuch_SocialOrder.docx</td><td>DOCX</td><td>Entwurf</td><td>Leitung</td><td class="right">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-shell-apps">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Apps</h1>
+          <p class="muted">App‑Launcher (nur Darstellung). In dieser Demo ist <strong>Social Order</strong> interaktiv.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__body">
+          <div class="row row--space" style="margin-bottom:12px;">
+            <div class="search search--small">
+              <span class="icon icon--search"></span>
+              <input type="search" placeholder="Apps suchen…" autocomplete="off" />
+            </div>
+            <div class="muted small"><span data-org-name>Kreisstadt Exempla</span> · GovConnect</div>
+          </div>
+
+          <div class="appsGrid">
+            <a class="appCard appCard--primary" href="#/app/start">
+              <div class="appCard__icon"><span class="icon icon--cart"></span></div>
+              <div class="appCard__name">Social Order</div>
+              <div class="appCard__meta">Bürobedarf bestellen · Gate · Bestelllauf · Dashboard</div>
+            </a>
+
+            <div class="appCard appCard--disabled">
+              <div class="appCard__icon"><span class="icon icon--grid"></span></div>
+              <div class="appCard__name">Dienstfahrrad</div>
+              <div class="appCard__meta">Reservierung &amp; Schlüsselübergabe</div>
+            </div>
+
+            <div class="appCard appCard--disabled">
+              <div class="appCard__icon"><span class="icon icon--grid"></span></div>
+              <div class="appCard__name">Raumbuchung</div>
+              <div class="appCard__meta">Räume, Ausstattung, Termine</div>
+            </div>
+
+            <div class="appCard appCard--disabled">
+              <div class="appCard__icon"><span class="icon icon--grid"></span></div>
+              <div class="appCard__name">IT‑Service</div>
+              <div class="appCard__meta">Tickets, Störungen, Wissensbase</div>
+            </div>
+
+            <div class="appCard appCard--disabled">
+              <div class="appCard__icon"><span class="icon icon--grid"></span></div>
+              <div class="appCard__name">Reisekosten</div>
+              <div class="appCard__meta">Anträge, Abrechnung, Belege</div>
+            </div>
+
+            <div class="appCard appCard--disabled">
+              <div class="appCard__icon"><span class="icon icon--grid"></span></div>
+              <div class="appCard__name">Fuhrpark</div>
+              <div class="appCard__meta">Dienstwagen &amp; Poolfahrzeuge</div>
+            </div>
+          </div>
+
+          <div class="callout" style="margin-top:14px;">
+            <div class="callout__title">Demo‑Hinweis</div>
+            <div class="callout__text">Die Shell‑Apps sind nur Screens. Für die Demo zählt die App <strong>Social Order</strong> (klickbar).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+<template id="tpl-about">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Info</h1>
+          <p class="muted">Prototyp für ein Uni-Projekt. Keine Produktkopie, sondern ein vertrauter Rahmen mit eigener App.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__body">
+          <h2 class="h2">Version</h2>
+          <p><strong>social_order_v0.16</strong></p>
+
+          <h2 class="h2">Was ist drin</h2>
+          <ul class="bullets">
+            <li><strong>v0.16:</strong> Persona‑Switch über „SO“ (Testpersonen), Owner-Feld je Anforderung + harte Bereichssicht (Mitarbeitende nur eigene Anforderungen; Leitungen/Freigabe nur im Bereich), Freigaben als 2‑Spalten‑Ansicht inkl. Öffnen/Prüfen der Anforderung.</li>
+            <li>Intranet-Shell: Topbar, Sidebar, Content.</li>
+            <li>Theme-Toggle: Hell/Dunkel als sichtbarer Schalter (oben rechts).</li>
+            <li>SPA-Routing über Hash-URLs (klickbare Demo).</li>
+            <li>App „Social Order“: Übersicht, Neue Anforderung, Meine Anforderungen.</li>
+            <li><strong>Stammdaten (Demo):</strong> <span data-org-name>Kreisstadt Exempla</span> mit Fachbereichen, Ämtern und Kostenstellen (Code + Klarname).</li>
+            <li><strong>Verwendungszweck:</strong> optionales Hinweisfeld zur Bestellung (z.B. „öffentlicher Kopierer“, „Projekt XY“).</li>
+            <li><strong>Dashboard (v0.13):</strong> Lagebild/Steuerung, Filter nach Fachbereich/Amt, Mix-Umschalter (Lieferant/Rahmenvertrag &amp; Wert/Anzahl), Trend als Balkenchart.</li>
+            <li><strong>Dashboard (v0.14):</strong> zusätzlicher Tab <strong>Analyse</strong> (Top Ämter &amp; Top Kostenstellen) mit Umschaltung Bestellwert/Anzahl POs.</li>
+            <li><strong>Dashboard (v0.15):</strong> <strong>Drilldown</strong> in der Analyse: Klick auf Balken öffnet Top-POs, Klick auf PO-Zeile öffnet die Detailansicht.</li>
+            <li><strong>Dashboard (v0.15.1):</strong> KPI-Logik geglättet (Anforderungen &amp; POs konsistent) + separate Kennzahl <strong>Split-Quote</strong> (Multi-Lieferant) statt „Lieferanten“.</li>
+            <li><strong>Dashboard (v0.15.3):</strong> Filter-UX finalisiert: Filterstatus sichtbar, Preset↔Custom ohne Überraschung, Enter=Anwenden, „Filter ändern“ springt mit Fokus.</li>
+            <li><strong>Shell (v0.15.4):</strong> Startseite/Personen/Bereiche/Dokumente/Apps als glaubwürdige Intranet-Screens (ohne Funktionen), Social Order bleibt als App interaktiv.</li>
+            <li><strong>Shell (v0.15.6):</strong> Personen: mehr Kontakte, Paging, Filter nach Amt/Einheit, sowie Chat/Anruf/Video‑Buttons je Karte (nur Darstellung).</li>
+            <li><strong>Shell (v0.15.7):</strong> Organisations‑Umschalter (Kreisstadt/Landkreis/Landesnetz), Social‑Order‑Navigation erscheint nur innerhalb der App; Rollenwechsel gehört zur App (nicht zur Shell‑Kopfzeile).</li>
+            <li><strong>Stabilität (v0.13.2):</strong> Repair/Migration verbessert, damit auch ältere Live-Orders sicher auf die Exempla-Orga gemappt werden und alte Demo-States bereinigt werden.</li>
+            <li>Warengruppen & globale Artikelsuche im Katalog.</li>
+            <li><strong>Multi-Lieferanten-Anforderung:</strong> Warenkorb darf Lieferanten mischen (System schluckt Komplexität).</li>
+            <li><strong>Aufsplittung im Bestelllauf:</strong> automatische Teilbestellungen pro Lieferant inkl. Teilstatus.</li>
+            <li>Smart-Gate (Demo): Freigabe bei Sonderbedarf, Dringlichkeit „Dringend“ oder Summe ≥ 25 €.</li>
+            <li>Rückfrage-Workflow: Kommentar, Status „Rückfrage“, Antwort möglich.</li>
+            <li>Mini-Chronik / Aktivitätsfeed (Benachrichtigungen über Glocke & Chronik-Menü).</li>
+            <li>Bestelllauf: Simulation → Aufsplittung pro Lieferant → Bestellung auslösen → Abschluss je Lieferant (Demo).</li>
+            <li>Mock-Daten, keine externen Abhängigkeiten (localStorage).</li>
+</ul>
+
+          <h2 class="h2">Demo zurücksetzen</h2>
+          <p class="muted">Setzt Mock-Daten und UI-Status zurück (löscht localStorage für diese Demo-Version).</p>
+          <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn--primary" id="btn-reset-demo" type="button">Demo zurücksetzen</button>
+            <span class="muted small">Danach Seite neu laden.</span>
+          </div>
+
+          <h2 class="h2">Hinweis</h2>
+          <p class="muted">Wenn ihr später echte Backends anbinden wollt, kann die Daten-Schicht ausgetauscht werden. Für die Demo reicht localStorage.</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+	  <script src="assets/js/mock-data.js"></script>
+	  <script src="assets/js/personnel.js"></script>
+	  <script src="assets/js/app.js"></script>
+</body>
+</html>
