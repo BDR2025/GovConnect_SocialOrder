@@ -1,4 +1,4 @@
-/* social_order_v0.19.3 · GovConnect Shell + Social Order Demo
+/* social_order_v0.19.3.1 · GovConnect Shell + Social Order Demo
    Features: Multi-Lieferanten-Warenkorb + automatische Aufsplittung im Bestelllauf (pro Lieferant) + Teilstatus
    v0.12: Exempla-Orga (Fachbereiche/Ämter) + Kostenstellen mit Klarname + Verwendungszweck/Bestellgrund
    v0.13: Dashboard: Tabs "Steuerung"/"Lagebild" + Filter (Fachbereich/Amt) + Mix-Umschaltung (Lieferant/Rahmenvertrag, Wert/Anzahl) + Trend als Balken
@@ -36,7 +36,7 @@ import { createHashRouter } from "./core/router.js";
   // NOTE: formatting helpers come from core/utils (eur/dt).
   const mock = MOCK;
 
-  const VERSION = "0.19.3";
+  const VERSION = "0.19.3.1";
   const PERSONNEL = PERSONNEL_DATA;
   const PEOPLE = PERSONNEL && Array.isArray(PERSONNEL.people) ? PERSONNEL.people : [];
   const LEADERSHIP = PERSONNEL && PERSONNEL.leadership ? PERSONNEL.leadership : {};

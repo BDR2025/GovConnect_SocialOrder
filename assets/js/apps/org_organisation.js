@@ -1,4 +1,4 @@
-/* social_order_v0.19.3 · apps/org_organisation (ESM)
+/* social_order_v0.19.3.1 · apps/org_organisation (ESM)
    Organisation – interaktives Organigramm (Kartenbaum) + Detailpanel.
 
    Anforderungen:
@@ -28,8 +28,9 @@ function parseHashQuery(){
 function ensureUi(state){
   if(!state.ui) state.ui = {};
   if(!state.ui.org){
-    state.ui.org = { selType: "org", selId: "org" };
+    state.ui.org = { selType: "org", selId: "org", expandedDeptId: null };
   }
+  if(typeof state.ui.org.expandedDeptId === "undefined") state.ui.org.expandedDeptId = null;
   return state.ui.org;
 }
 
@@ -44,6 +45,13 @@ function nodeSelected(ui, type, id){
 function setSelected(ui, state, saveState, type, id){
   ui.selType = String(type || "org");
   ui.selId = String(id || "org");
+  // optional UI state (collapse/expand)
+  if(arguments.length >= 6 && typeof arguments[5] === "object" && arguments[5] !== null){
+    const patch = arguments[5];
+    if(Object.prototype.hasOwnProperty.call(patch, "expandedDeptId")){
+      ui.expandedDeptId = patch.expandedDeptId;
+    }
+  }
   saveState();
 }
 
@@ -90,13 +98,20 @@ export function mountOrganisation(ctx){
 
   const ui = ensureUi(state);
 
+  // Oberbürgermeisterin (Verwaltungsspitze) im Organigramm
+  const execNameEl = document.getElementById("org-exec-name");
+  if(execNameEl){
+    const mayor = (Array.isArray(people) ? people : []).find(p => p && String(p.id) === "p_mayor") || null;
+    if(mayor && mayor.name) execNameEl.textContent = String(mayor.name);
+  }
+
   const rootNameEl = document.getElementById("org-root-name");
   if(rootNameEl && orgModel && orgModel.orgName) rootNameEl.textContent = String(orgModel.orgName);
 
   const resetBtn = document.getElementById("org-reset");
   if(resetBtn){
     resetBtn.addEventListener("click", ()=>{
-      setSelected(ui, state, saveState, "org", "org");
+      setSelected(ui, state, saveState, "org", "org", { expandedDeptId: null });
       render();
     });
   }
@@ -104,13 +119,28 @@ export function mountOrganisation(ctx){
   const rootNode = document.querySelector("[data-org-type='org'][data-org-id='org']");
   if(rootNode){
     rootNode.addEventListener("click", ()=>{
-      setSelected(ui, state, saveState, "org", "org");
+      setSelected(ui, state, saveState, "org", "org", { expandedDeptId: null });
       render();
     });
     rootNode.addEventListener("keydown", (e)=>{
       if(e.key === "Enter" || e.key === " "){
         e.preventDefault();
-        setSelected(ui, state, saveState, "org", "org");
+        setSelected(ui, state, saveState, "org", "org", { expandedDeptId: null });
+        render();
+      }
+    });
+  }
+
+  const execNode = document.querySelector("[data-org-type='exec'][data-org-id='p_mayor']");
+  if(execNode){
+    execNode.addEventListener("click", ()=>{
+      setSelected(ui, state, saveState, "exec", "p_mayor", { expandedDeptId: null });
+      render();
+    });
+    execNode.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        setSelected(ui, state, saveState, "exec", "p_mayor", { expandedDeptId: null });
         render();
       }
     });
@@ -123,6 +153,25 @@ export function mountOrganisation(ctx){
   // Build directory once per mount
   const peopleDir = buildPeopleDirectory({ people, orgModel });
   const personById = (id)=> findPerson(peopleDir, id);
+
+  function deptIdOfUnit(unitId){
+    const id = String(unitId || "");
+    const deps = (orgModel && Array.isArray(orgModel.departments)) ? orgModel.departments : [];
+    for(const dep of deps){
+      const units = Array.isArray(dep.units) ? dep.units : [];
+      if(units.some(u => u && String(u.id) === id)) return String(dep.id);
+    }
+    return null;
+  }
+
+  // Backward-compatible: wenn ein alter State eine Unit/Dept selektiert, aber kein Expand-State hat,
+  // leiten wir die Expansion deterministisch ab.
+  if(ui.selType === "dept" && !ui.expandedDeptId){
+    ui.expandedDeptId = String(ui.selId || "");
+  }
+  if(ui.selType === "unit" && !ui.expandedDeptId){
+    ui.expandedDeptId = deptIdOfUnit(ui.selId) || null;
+  }
 
   function deptLeadId(deptId){
     return leadership && leadership.deptLeadByDeptId ? leadership.deptLeadByDeptId[String(deptId)] : null;
@@ -141,7 +190,14 @@ export function mountOrganisation(ctx){
   }
 
   function select(type, id){
-    setSelected(ui, state, saveState, type, id);
+    if(type === "dept"){
+      setSelected(ui, state, saveState, type, id, { expandedDeptId: String(id) });
+    }else if(type === "unit"){
+      const depId = deptIdOfUnit(id);
+      setSelected(ui, state, saveState, type, id, { expandedDeptId: depId || null });
+    }else{
+      setSelected(ui, state, saveState, type, id, { expandedDeptId: null });
+    }
     render();
   }
 
@@ -213,6 +269,7 @@ export function mountOrganisation(ctx){
     const deps = (orgModel && Array.isArray(orgModel.departments)) ? orgModel.departments : [];
     chartEl.innerHTML = deps.map(d=>{
       const deptId = String(d.id);
+      const isExpanded = String(ui.expandedDeptId || "") === deptId;
       const leadId = deptLeadId(deptId);
       const lead = leadId ? personById(leadId) : null;
 
@@ -230,7 +287,7 @@ export function mountOrganisation(ctx){
         selected: nodeSelected(ui, "dept", deptId)
       });
 
-      const unitsHtml = units.map((u, idx)=>{
+      const unitsHtml = !isExpanded ? "" : units.map((u, idx)=>{
         const unitId = String(u.id);
         const uLeadId = unitLeadId(unitId);
         const uLead = uLeadId ? personById(uLeadId) : null;
@@ -257,7 +314,7 @@ export function mountOrganisation(ctx){
 
       return `<div class="orgCol">
         ${deptNode}
-        <div class="orgUnits">${unitsHtml}</div>
+        ${isExpanded ? `<div class="orgUnits">${unitsHtml}</div>` : ""}
       </div>`;
     }).join("");
 
@@ -318,6 +375,53 @@ export function mountOrganisation(ctx){
         if(id) select("dept", id);
       });
     });
+
+    bindNodeEvents();
+  }
+
+  function renderDetailExec(personId){
+    const p = personId ? personById(personId) : null;
+    if(!p){
+      renderDetailOrg();
+      return;
+    }
+
+    detailEl.innerHTML = `
+      <div class="card">
+        <div class="card__body">
+          <div class="orgDetailHeader">
+            <div>
+              <div class="orgDetailTitle">${escapeHtml(p.name)}</div>
+              <div class="orgDetailMeta">Verwaltungsspitze · ${escapeHtml(orgModel && orgModel.orgName ? String(orgModel.orgName) : "Kreisstadt Exempla")}</div>
+            </div>
+          </div>
+
+          <div class="orgActions" style="margin-top:10px;">
+            <button class="btn btn--primary" type="button" data-open-person="${escapeHtml(String(p.id))}">Person öffnen</button>
+            <button class="btn" type="button" data-nav="/kalender">Kalender</button>
+            <button class="btn" type="button" data-nav="/personen">Personen</button>
+            <button class="btn" type="button" data-nav="/dokumente">Dokumente</button>
+          </div>
+
+          <div class="grid grid--2" style="margin-top:12px;">
+            <div>
+              <div class="label">E‑Mail</div>
+              <div>${escapeHtml(p.email || "—")}</div>
+            </div>
+            <div>
+              <div class="label">Telefon</div>
+              <div>${escapeHtml(p.phone || "—")}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="label">Dienstort</div>
+            <div>${escapeHtml(p.office || "—")}</div>
+          </div>
+
+          <div class="muted small" style="margin-top:12px;">Hinweis: Kommunikation ist in dieser Demo bewusst „nur Darstellung“.</div>
+        </div>
+      </div>
+    `;
 
     bindNodeEvents();
   }
@@ -520,6 +624,7 @@ export function mountOrganisation(ctx){
   }
 
   function renderDetail(){
+    if(ui.selType === "exec") return renderDetailExec(ui.selId);
     if(ui.selType === "dept") return renderDetailDept(ui.selId);
     if(ui.selType === "unit") return renderDetailUnit(ui.selId);
     return renderDetailOrg();
@@ -528,11 +633,12 @@ export function mountOrganisation(ctx){
   function applyQuerySelection(){
     const q = parseHashQuery();
     if(q.unit){
-      setSelected(ui, state, saveState, "unit", q.unit);
+      const depId = deptIdOfUnit(q.unit);
+      setSelected(ui, state, saveState, "unit", q.unit, { expandedDeptId: depId || null });
       return;
     }
     if(q.dept){
-      setSelected(ui, state, saveState, "dept", q.dept);
+      setSelected(ui, state, saveState, "dept", q.dept, { expandedDeptId: String(q.dept) });
       return;
     }
   }

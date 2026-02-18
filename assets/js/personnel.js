@@ -57,9 +57,9 @@ function normalizeStatus(s){
 // --- Fixe Rollen/Leitungen (gewünscht) ---
 const mayor = {
   id: "p_mayor",
-  name: "Bürgermeisterin Dr. Katharina Schwarz",
-  initials: "BM",
-  title: "Bürgermeisterin",
+  name: "Oberbürgermeisterin Dr. Katharina Schwarz",
+  initials: "OB",
+  title: "Oberbürgermeisterin",
   isLeadership: true,
   unitId: null,
   employer: "city",

@@ -1,7 +1,17 @@
-# social_order_v0.19.3 (Demo)
+# social_order_v0.19.3.1 (Demo)
 Dieses Paket ist ein klickbarer HTML/JS-Prototyp: ein Social-Intranet-Rahmen („GovConnect“) plus eingebettete App „Social Order“ für Bürobedarfs-Anforderungen.
 
-## Was ist neu in v0.19.3
+## Start
+- Öffne `index.html` über deinen lokalen Testserver (z. B. VS Code Live Server).
+- Es werden **keine** externen Libraries geladen.
+- Daten sind Mock-Daten; Änderungen werden in `localStorage` gespeichert.
+
+> Tipp: Wenn dir „komische Zustände“ auffallen, nutze **Info → Demo zurücksetzen** oder lösche den localStorage-Eintrag im Browser.
+
+## Was ist neu in v0.19.3.1
+
+- Organisation: Verwaltungsspitze (Oberbürgermeisterin) ist als oberster Knoten sichtbar.
+- Organisation: Startansicht ist kompakt (Fachbereiche sichtbar, Ämter erst nach Klick auf Fachbereich).
 
 - **Person-Modal: Kontakt-Aktionen als Icons (Chat, Anruf, Video, E‑Mail)**
   - Buttons sind in der Demo nur Darstellung; im Modal erscheint ein Hinweis.

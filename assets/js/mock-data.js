@@ -1,11 +1,11 @@
-/* social_order_v0.19.3 · Mock-Daten (keine externen Abhängigkeiten)
+/* social_order_v0.19.3.1 · Mock-Daten (keine externen Abhängigkeiten)
    Hinweis: Version steht zusätzlich in MOCK.meta.version */
 
 import { DEMO_SUPPLIERS, DEMO_CATALOG } from "./domain/contracts/index.js";
 
 export const MOCK = {
   "meta": {
-    "version": "0.19.3",
+    "version": "0.19.3.1",
     "currency": "EUR",
     "cutoffLabel": "Di 11:00",
     "gateThreshold": 25
