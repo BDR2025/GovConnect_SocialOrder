@@ -1,4 +1,4 @@
-# social_order_v0.19.2 (Demo)
+# social_order_v0.19.3 (Demo)
 Dieses Paket ist ein klickbarer HTML/JS-Prototyp: ein Social-Intranet-Rahmen („GovConnect“) plus eingebettete App „Social Order“ für Bürobedarfs-Anforderungen.
 
 ## Start
@@ -8,7 +8,14 @@ Dieses Paket ist ein klickbarer HTML/JS-Prototyp: ein Social-Intranet-Rahmen (�
 
 > Tipp: Wenn dir „komische Zustände“ auffallen, nutze **Info → Demo zurücksetzen** oder lösche den localStorage-Eintrag im Browser.
 
-## Was ist neu in v0.19.2
+## Was ist neu in v0.19.3
+
+- **Person-Modal: Kontakt-Aktionen als Icons (Chat, Anruf, Video, E‑Mail)**
+  - Buttons sind in der Demo nur Darstellung; im Modal erscheint ein Hinweis.
+- **Doppelrollen sichtbar**
+  - Amtsleitungen, die zugleich Fachbereichsleitung sind (Amt 11/21/31/41), zeigen beide Rollen als Pills.
+
+## (Historie) Was ist neu in v0.19.2
 
 - **Personen als eigenes App‑Modul + People‑Model**
   - Personen‑Screen ist jetzt ein eigenes Modul (`apps/peo_people.js`).

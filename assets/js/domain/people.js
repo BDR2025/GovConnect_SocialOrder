@@ -1,4 +1,4 @@
-/* social_order_v0.19.2 · domain/people (ESM)
+/* social_order_v0.19.2.1 · domain/people (ESM)
    People directory model (separate from Persona/Login roles).
 
    Ziel:

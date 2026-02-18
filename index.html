@@ -956,55 +956,46 @@
   </template>
 
   <template id="tpl-shell-bereiche">
-    <div class="page">
-      <div class="page__header">
-        <div>
-          <h1 class="h1">Organisation</h1>
-          <p class="muted">Fachbereiche, Ämter und Kostenstellen (nur Darstellung).</p>
-        </div>
+  <div class="page">
+    <div class="page__header">
+      <div>
+        <h1 class="h1">Organisation</h1>
+        <p class="muted">Interaktives Organigramm. Klick auf einen Fachbereich oder ein Amt zeigt Details, Mitarbeitende und Kostenstellen.</p>
       </div>
-
-      <div class="grid grid--3">
-        <div class="card">
-          <div class="card__title">Fachbereiche</div>
-          <div class="card__body">
-            <div class="shellList">
-              <div class="shellList__item"><div class="shellList__title">Zentrale Steuerung</div><div class="shellList__meta">Amt 10 · 12 Mitglieder</div></div>
-              <div class="shellList__item"><div class="shellList__title">Bürgerservice und Ordnung</div><div class="shellList__meta">Ämter 20–22 · 45 Mitglieder</div></div>
-              <div class="shellList__item"><div class="shellList__title">Soziales, Bildung und Kultur</div><div class="shellList__meta">Ämter 40–42 · 38 Mitglieder</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card__title">Projekte</div>
-          <div class="card__body">
-            <div class="shellList">
-              <div class="shellList__item"><div class="shellList__title">Projekt Digitalisierung 2026</div><div class="shellList__meta">Status: laufend</div></div>
-              <div class="shellList__item"><div class="shellList__title">E‑Akte Rollout</div><div class="shellList__meta">Status: Planung</div></div>
-              <div class="shellList__item"><div class="shellList__title">Beschaffung – Prozessoptimierung</div><div class="shellList__meta">Status: Umsetzung</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card__title">Gruppen</div>
-          <div class="card__body">
-            <div class="shellList">
-              <div class="shellList__item"><div class="shellList__title">Newsroom</div><div class="shellList__meta">Redaktion</div></div>
-              <div class="shellList__item"><div class="shellList__title">IT‑Hinweise</div><div class="shellList__meta">Service &amp; Wartung</div></div>
-              <div class="shellList__item"><div class="shellList__title">Organisation &amp; Personal</div><div class="shellList__meta">Austausch</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="callout">
-        <div class="callout__title">Hinweis</div>
-        <div class="callout__text">Organisation ist in dieser Demo nicht interaktiv. Sie dient nur als glaubwürdiger Intranet‑Rahmen.</div>
+      <div class="page__actions">
+        <button class="btn" type="button" id="org-reset">Zur Gesamtansicht</button>
       </div>
     </div>
-  </template>
+
+    <div class="orgLayout">
+      <div class="orgChart">
+        <div class="orgRootRow">
+          <div class="orgNode orgNode--root card" data-org-type="org" data-org-id="org" tabindex="0" role="button">
+            <div class="card__body">
+              <div class="orgNode__title" id="org-root-name">Kreisstadt Exempla</div>
+              <div class="orgNode__meta muted small">Fachbereiche · Ämter · Kostenstellen</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="orgDepts" id="org-depts"></div>
+      </div>
+
+      <aside class="orgDetail" id="org-detail">
+        <div class="card">
+          <div class="card__body">
+            <div class="muted">Wähle links einen Knoten aus.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="muted small" style="margin-top:10px;">
+      Hinweis: Verlinkungen setzen nur Filter und springen zur Route. Kommunikation bleibt in dieser Demo bewusst „nur Darstellung“.
+    </div>
+  </div>
+</template>
+
 
     <template id="tpl-shell-dokumente">
     <div class="page">

@@ -1,4 +1,4 @@
-/* social_order_v0.19.2 · GovConnect Shell + Social Order Demo
+/* social_order_v0.19.3 · GovConnect Shell + Social Order Demo
    Features: Multi-Lieferanten-Warenkorb + automatische Aufsplittung im Bestelllauf (pro Lieferant) + Teilstatus
    v0.12: Exempla-Orga (Fachbereiche/Ämter) + Kostenstellen mit Klarname + Verwendungszweck/Bestellgrund
    v0.13: Dashboard: Tabs "Steuerung"/"Lagebild" + Filter (Fachbereich/Amt) + Mix-Umschaltung (Lieferant/Rahmenvertrag, Wert/Anzahl) + Trend als Balken
@@ -23,8 +23,10 @@ import { mountOrders as mountOrdersImpl, openOrderDetails as openOrderDetailsImp
 import { mountApprovals as mountApprovalsImpl } from "./apps/so_approvals.js";
 import { mountDocuments as mountDocumentsImpl } from "./apps/doc_documents.js";
 import { mountPeople as mountPeopleImpl } from "./apps/peo_people.js";
+import { mountOrganisation as mountOrganisationImpl } from "./apps/org_organisation.js";
 
 import { orderTotal, orderVendors, orderVendor, splitParts, syncAggregate, statusCategory, orderGateReason } from "./domain/order.js";
+import { buildOrgIndex } from "./domain/org.js";
 
 import { createSession } from "./core/context.js";
 import { createPermissionsApi } from "./core/permissions.js";
@@ -34,7 +36,7 @@ import { createHashRouter } from "./core/router.js";
   // NOTE: formatting helpers come from core/utils (eur/dt).
   const mock = MOCK;
 
-  const VERSION = "0.19.2";
+  const VERSION = "0.19.3";
   const PERSONNEL = PERSONNEL_DATA;
   const PEOPLE = PERSONNEL && Array.isArray(PERSONNEL.people) ? PERSONNEL.people : [];
   const LEADERSHIP = PERSONNEL && PERSONNEL.leadership ? PERSONNEL.leadership : {};
@@ -317,46 +319,15 @@ import { createHashRouter } from "./core/router.js";
   // ---------- Stammdaten: Organisation / Kostenstellen (Demo) ----------
   // In der v0.12 werden Organisationseinheit & Kostenstelle als Stammdaten modelliert,
   // damit Führungskräfte (Dashboard/Report) später sauber nach Strukturen filtern können.
-  const ORG_MODEL = (mock && mock.orgModel) ? mock.orgModel : null;
-
-  function orgUnitsFlat(){
-    const out = [];
-    const deps = ORG_MODEL && Array.isArray(ORG_MODEL.departments) ? ORG_MODEL.departments : [];
-    for(const d of deps){
-      const units = Array.isArray(d.units) ? d.units : [];
-      for(const u of units){
-        out.push(Object.assign({}, u, {
-          deptId: d.id,
-          deptName: d.name
-        }));
-      }
-    }
-    return out;
-  }
-
-  const ORG_UNITS = orgUnitsFlat();
-  const ORG_BY_ID = Object.fromEntries(ORG_UNITS.map(u=> [u.id, u]));
-  // Backwards-compat alias (older code paths / helper functions may refer to ORG_UNIT_BY_ID)
-  const ORG_UNIT_BY_ID = ORG_BY_ID;
-  const ORG_BY_LABEL = Object.fromEntries(ORG_UNITS.map(u=> [String(u.label||"").trim(), u]));
-
-  const COSTCENTER_BY_CODE = (function(){
-    const m = {};
-    for(const u of ORG_UNITS){
-      for(const cc of (u.costCenters || [])){
-        if(cc && cc.code) m[String(cc.code)] = { code: String(cc.code), name: String(cc.name||"") };
-      }
-    }
-    return m;
-  })();
-
-  const ALL_LOCATIONS = (function(){
-    const s = new Set();
-    for(const u of ORG_UNITS){
-      for(const l of (u.locations || [])) s.add(String(l));
-    }
-    return Array.from(s);
-  })();
+  const ORG_INDEX = buildOrgIndex((mock && mock.orgModel) ? mock.orgModel : null);
+const ORG_MODEL = ORG_INDEX.ORG_MODEL;
+const ORG_UNITS = ORG_INDEX.ORG_UNITS;
+const ORG_BY_ID = ORG_INDEX.ORG_BY_ID;
+// Backwards-compat alias (older code paths / helper functions may refer to ORG_UNIT_BY_ID)
+const ORG_UNIT_BY_ID = ORG_BY_ID;
+const ORG_BY_LABEL = ORG_INDEX.ORG_BY_LABEL;
+const COSTCENTER_BY_CODE = ORG_INDEX.COSTCENTER_BY_CODE;
+const ALL_LOCATIONS = ORG_INDEX.ALL_LOCATIONS;
 
   function formatOrgUnit(u){
     if(!u) return "–";
@@ -1036,6 +1007,7 @@ import { createHashRouter } from "./core/router.js";
 
   function renderShellBereiche(){
     els.content.innerHTML = tpl("tpl-shell-bereiche");
+    mountOrganisation();
   }
 
   function renderShellDokumente(){
@@ -1067,6 +1039,21 @@ import { createHashRouter } from "./core/router.js";
       orgModel: ORG_MODEL
     });
   }
+
+// ---------- View: Organisation (Organigramm) ----------
+function mountOrganisation(){
+  return mountOrganisationImpl({
+    state,
+    saveState,
+    navTo,
+    openModal,
+    permissions,
+    people: PEOPLE,
+    leadership: LEADERSHIP,
+    orgModel: ORG_MODEL
+  });
+}
+
 
 
   function renderPlaceholder(title){

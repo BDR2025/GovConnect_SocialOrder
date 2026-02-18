@@ -1,4 +1,4 @@
-/* social_order_v0.19.2 · core/store (ESM)
+/* social_order_v0.19.3 · core/store (ESM)
    Persistenter Demo-State (localStorage), tolerant gegenüber älteren Keys.
    Enthält nur Speicher-/Seed-Logik, kein UI- oder Domänenwissen.
 */
@@ -12,6 +12,12 @@ export function createStore({ version, state, mock, deepClone, ensureSession, pe
   // Tolerant gegenüber Zwischenständen (ohne v-Prefix) und älteren Versionen.
   const STORAGE_KEYS_FALLBACK = [
     // (tolerant) Letzte Versionen
+    "social_order_state_0_19_2_1",
+    "social_order_state_v0_19_2_1",
+
+    "social_order_state_0_19_2",
+    "social_order_state_v0_19_2",
+
     "social_order_state_0_19_1",
     "social_order_state_v0_19_1",
 

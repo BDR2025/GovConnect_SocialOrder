@@ -1,4 +1,4 @@
-/* social_order_v0.19.2 · apps/peo_people (ESM)
+/* social_order_v0.19.2.1 · apps/peo_people (ESM)
    Personen – Mitarbeitendenverzeichnis (Demo) mit Suche, Filter und Paging.
    Kommunikationsfunktionen bleiben bewusst nur Darstellung.
 
@@ -9,6 +9,20 @@
 
 import { escapeHtml } from "../core/utils.js";
 import { buildPeopleDirectory, findPerson, presenceBadge, flattenOrgUnits } from "../domain/people.js";
+
+function parseHashQuery(){
+  const h = String(location.hash || "");
+  const i = h.indexOf("?");
+  if(i < 0) return {};
+  const q = h.slice(i + 1);
+  const out = {};
+  q.split("&").forEach(part=>{
+    const [k,v] = part.split("=");
+    if(!k) return;
+    out[decodeURIComponent(k)] = decodeURIComponent(v || "");
+  });
+  return out;
+}
 
 function parseDeptLabelFromId(deptId){
   const m = String(deptId || "").match(/^FB(\d+)$/i);
@@ -22,20 +36,6 @@ function formatUnitOption(u){
   return name ? `${label} · ${name}` : label;
 }
 
-function safeGet(obj, path, fallback = null){
-  try{
-    const parts = String(path || "").split(".").filter(Boolean);
-    let cur = obj;
-    for(const p of parts){
-      if(!cur || typeof cur !== "object") return fallback;
-      cur = cur[p];
-    }
-    return (cur === undefined || cur === null) ? fallback : cur;
-  }catch(_){
-    return fallback;
-  }
-}
-
 function ensureUiState(state){
   if(!state.ui) state.ui = {};
   if(!state.ui.people){
@@ -44,7 +44,42 @@ function ensureUiState(state){
   return state.ui.people;
 }
 
-function personCardHtml(p, { metaLeft = "", metaRight = "", leader = false } = {}){
+function rolePillHtml(label, { small = false } = {}){
+  const cls = small ? "rolePill rolePill--sm" : "rolePill";
+  return `<span class="${cls}">${escapeHtml(label)}</span>`;
+}
+
+function badgesRowHtml(badges, { small = true } = {}){
+  const arr = Array.isArray(badges) ? badges.filter(Boolean) : [];
+  if(!arr.length) return "";
+  return `<div class="personCard__badges">${arr.map(b => rolePillHtml(String(b), { small })).join("")}</div>`;
+}
+
+function personActionsHtml({ personId, includeMail = false, includePhone = true } = {}){
+  const pid = escapeHtml(String(personId || ""));
+  return `
+    <div class="personCard__actions" aria-label="Kontakt">
+      <button class="icon-btn icon-btn--sm" type="button" data-person-action="chat" data-person-id="${pid}" title="Chat" aria-label="Chat">
+        <span class="icon icon--chat"></span>
+      </button>
+      ${includePhone ? `
+        <button class="icon-btn icon-btn--sm" type="button" data-person-action="call" data-person-id="${pid}" title="Anruf" aria-label="Anruf">
+          <span class="icon icon--phone"></span>
+        </button>
+      ` : ""}
+      <button class="icon-btn icon-btn--sm" type="button" data-person-action="video" data-person-id="${pid}" title="Video" aria-label="Video">
+        <span class="icon icon--video"></span>
+      </button>
+      ${includeMail ? `
+        <button class="icon-btn icon-btn--sm" type="button" data-person-action="mail" data-person-id="${pid}" title="E‑Mail" aria-label="E‑Mail">
+          <span class="icon icon--mail"></span>
+        </button>
+      ` : ""}
+    </div>
+  `;
+}
+
+function personCardHtml(p, { metaLeft = "", leader = false, badges = [] } = {}){
   const st = presenceBadge(p.presence);
   const cls = leader ? "personCard personCard--leader" : "personCard";
   const meta = metaLeft ? metaLeft : `${p.unitLabel || "—"}${p.title ? " · " + p.title : ""}`;
@@ -55,35 +90,68 @@ function personCardHtml(p, { metaLeft = "", metaRight = "", leader = false } = {
       <div class="personCard__main">
         <div class="personCard__name">${escapeHtml(p.name)}</div>
         <div class="personCard__meta">${escapeHtml(meta)}</div>
+        ${badgesRowHtml(badges)}
       </div>
       <div class="personCard__right">
         <div class="personCard__status"><span class="${st.dot}"></span> ${escapeHtml(st.label)}</div>
-        ${leader ? "" : `
-          <div class="personCard__actions" aria-label="Aktionen">
-            <button class="icon-btn icon-btn--sm" type="button" data-person-action="chat" title="Chat"><span class="icon icon--chat"></span></button>
-            <button class="icon-btn icon-btn--sm" type="button" data-person-action="call" title="Anruf"><span class="icon icon--phone"></span></button>
-            <button class="icon-btn icon-btn--sm" type="button" data-person-action="video" title="Video"><span class="icon icon--video"></span></button>
-          </div>
-        `}
+        ${leader ? "" : personActionsHtml({ personId: p.id, includeMail: false, includePhone: true })}
       </div>
     </div>
   `;
 }
 
-function personModalHtml(p){
+function computeRoleBadges(p, leadership){
+  const badges = [];
+  const lid = leadership || {};
+
+  // Amtsleitung
+  if(p && p.unitId && lid.unitLeadByUnitId && lid.unitLeadByUnitId[String(p.unitId)]){
+    const uid = String(lid.unitLeadByUnitId[String(p.unitId)]);
+    if(uid && String(p.id) === uid){
+      badges.push(`Amtsleitung · ${p.unitLabel || String(p.unitId)}`);
+    }
+  }
+
+  // Fachbereichsleitung
+  if(p && lid.deptLeadByDeptId){
+    for(const deptId of Object.keys(lid.deptLeadByDeptId)){
+      const did = String(lid.deptLeadByDeptId[deptId] || "");
+      if(did && String(p.id) === did){
+        badges.push(`Fachbereichsleitung · ${parseDeptLabelFromId(deptId)}`);
+      }
+    }
+  }
+
+  // Zentrale Beschaffung
+  if(p && lid.procurementChiefId && String(p.id) === String(lid.procurementChiefId)){
+    badges.push("Leitung · Zentrale Beschaffung");
+  }
+
+  // Dedup
+  return Array.from(new Set(badges.map(String)));
+}
+
+function personModalHtml(p, { roleBadges = [] } = {}){
   const st = presenceBadge(p.presence);
   const unit = p.unitLabel ? `${p.unitLabel}${p.unitName ? " · " + p.unitName : ""}` : "—";
   const dept = p.deptLabel || "—";
 
+  const roles = Array.isArray(roleBadges) ? roleBadges.filter(Boolean) : [];
+
   return `
-    <div class="card">
+    <div class="card" data-person-modal="1" data-person-id="${escapeHtml(p.id)}">
       <div class="card__body">
         <div class="row row--space" style="align-items:flex-start; gap:16px;">
           <div>
             <div style="font-weight:950; font-size:18px;">${escapeHtml(p.name)}</div>
             <div class="muted" style="margin-top:2px;">${escapeHtml(p.title || unit)}</div>
+            ${roles.length ? `<div class="rolePills" style="margin-top:8px;">${roles.map(r => rolePillHtml(String(r))).join("")}</div>` : ""}
           </div>
-          <div class="personCard__status"><span class="${st.dot}"></span> ${escapeHtml(st.label)}</div>
+
+          <div class="personModal__right">
+            <div class="personCard__status"><span class="${st.dot}"></span> ${escapeHtml(st.label)}</div>
+            ${personActionsHtml({ personId: p.id, includeMail: true, includePhone: true })}
+          </div>
         </div>
 
         <div class="grid grid--2" style="margin-top:14px;">
@@ -109,6 +177,11 @@ function personModalHtml(p){
           </div>
         </div>
 
+        <div id="person-comm-callout" class="callout" style="display:none;">
+          <div class="callout__title">Nur Darstellung</div>
+          <div class="callout__text" id="person-comm-text"></div>
+        </div>
+
         <div class="muted small" style="margin-top:10px;">Kontaktfelder sind Mock‑Daten. Kommunikation ist in dieser Demo nicht implementiert.</div>
       </div>
     </div>
@@ -118,7 +191,33 @@ function personModalHtml(p){
 export function openPersonModal(ctx, peopleDir, personId){
   const p = findPerson(peopleDir, personId);
   if(!p) return;
-  ctx.openModal(personModalHtml(p), { title: "Person" });
+
+  const roleBadges = computeRoleBadges(p, ctx.leadership);
+  ctx.openModal(personModalHtml(p, { roleBadges }), { title: "Person" });
+
+  // Wire modal action buttons (within modal only)
+  const body = document.getElementById("modal-body");
+  const root = body ? body.querySelector("[data-person-modal='1']") : null;
+  if(!root) return;
+
+  const callout = root.querySelector("#person-comm-callout");
+  const textEl = root.querySelector("#person-comm-text");
+
+  function showHint(action){
+    if(!callout || !textEl) return;
+    const a = String(action || "");
+    const label = a === "chat" ? "Chat" : (a === "call" ? "Anruf" : (a === "video" ? "Videocall" : "E‑Mail"));
+    textEl.textContent = `${label} ist in dieser Demo bewusst nicht implementiert.`;
+    callout.style.display = "";
+  }
+
+  root.querySelectorAll("button[data-person-action]").forEach(btn => {
+    btn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      const action = btn.getAttribute("data-person-action") || "";
+      showHint(action);
+    });
+  });
 }
 
 function mountTabs(ui, state, saveState){
@@ -150,6 +249,19 @@ export function mountPeople(ctx){
 
   const ui = ensureUiState(state);
 
+  // Optional: preselect filter via hash query (e.g., /personen?unit=A11 or ?dept=FB1)
+  const query = parseHashQuery();
+  if(query && query.unit){
+    ui.tab = "directory";
+    ui.unit = String(query.unit);
+    ui.page = 1;
+  }
+  if(query && query.dept){
+    ui.tab = "directory";
+    ui.unit = `dept:${String(query.dept)}`;
+    ui.page = 1;
+  }
+
   mountTabs(ui, state, saveState);
 
   const grid = document.getElementById("people-grid");
@@ -172,7 +284,20 @@ export function mountPeople(ctx){
     { id:"ZB", label:"Zentrale Beschaffung", name:"Zentrale Beschaffung", deptId:"FB1", deptName:"Zentrale Steuerung" },
     { id:"IT", label:"IT‑Service", name:"IT‑Service", deptId:"FB1", deptName:"Zentrale Steuerung" }
   ];
-  const unitOptions = [{ value:"all", label:"Alle" }, ...units.map(u => ({ value: u.id, label: formatUnitOption(u) })), ...EXTRA.map(u => ({ value: u.id, label: u.name }))];
+  // Dept options (Fachbereiche) – allows filtering by scope without leaving the People app.
+const deptOptions = (orgModel && Array.isArray(orgModel.departments))
+  ? orgModel.departments.map(d => ({
+      value: `dept:${String(d.id)}`,
+      label: `${parseDeptLabelFromId(d.id)} · ${String(d.name || d.id)}`
+    }))
+  : [];
+
+const unitOptions = [
+  { value:"all", label:"Alle" },
+  ...deptOptions,
+  ...units.map(u => ({ value: u.id, label: formatUnitOption(u) })),
+  ...EXTRA.map(u => ({ value: u.id, label: u.name }))
+];
 
   sel.innerHTML = unitOptions.map(o => `<option value="${escapeHtml(String(o.value))}">${escapeHtml(String(o.label))}</option>`).join("");
   sel.value = ui.unit || "all";
@@ -238,6 +363,8 @@ export function mountPeople(ctx){
       if(!p) continue;
 
       let roleLabel = "Leitung";
+      const badges = [];
+
       if(String(unit) === "ZB"){
         roleLabel = "Leitung · Zentrale Beschaffung";
       } else {
@@ -248,11 +375,17 @@ export function mountPeople(ctx){
         const deptLeadId = (deptId && lid.deptLeadByDeptId) ? lid.deptLeadByDeptId[deptId] : null;
         const unitLeadId = (lid.unitLeadByUnitId) ? lid.unitLeadByUnitId[String(unit)] : null;
 
-        if(deptLeadId && String(id) === String(deptLeadId)) roleLabel = `Fachbereichsleitung · ${deptLabel}`;
-        if(unitLeadId && String(id) === String(unitLeadId)) roleLabel = `Amtsleitung · ${p.unitLabel || String(unit)}`;
+        const deptRole = (deptLeadId && String(id) === String(deptLeadId)) ? `Fachbereichsleitung · ${deptLabel}` : "";
+        const unitRole = (unitLeadId && String(id) === String(unitLeadId)) ? `Amtsleitung · ${p.unitLabel || String(unit)}` : "";
+
+        if(unitRole) roleLabel = unitRole;
+        else if(deptRole) roleLabel = deptRole;
+
+        // Wenn beide Rollen auf einer Person liegen (Amt 11/21/31/41), zeigen wir zusätzlich die zweite Rolle.
+        if(unitRole && deptRole) badges.push(deptRole);
       }
 
-      cards.push(personCardHtml(p, { metaLeft: roleLabel, leader: true }));
+      cards.push(personCardHtml(p, { metaLeft: roleLabel, leader: true, badges }));
     }
 
     if(!cards.length){

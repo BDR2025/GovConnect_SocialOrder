@@ -1,4 +1,4 @@
-/* social_order_v0.19.2 · domain/docs (ESM)
+/* social_order_v0.19.2.1 · domain/docs (ESM)
    Dokumente als Demo-Datenmodell.
    Ziel: projektfähig + erweiterbar (weitere Projekte/Dokumente später).
 
