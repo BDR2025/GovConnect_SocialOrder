@@ -34,9 +34,9 @@
 
       <nav class="topnav" aria-label="Hauptnavigation">
         <a href="#/home" class="topnav__item" data-route="/home"><span class="icon icon--home"></span><span>Startseite</span></a>
-        <a href="#/chronik" class="topnav__item" data-route="/chronik"><span class="icon icon--chronik"></span><span>Chronik</span></a>
+        <a href="#/kalender" class="topnav__item" data-route="/kalender"><span class="icon icon--calendar"></span><span>Kalender</span></a>
+        <a href="#/bereiche" class="topnav__item" data-route="/bereiche"><span class="icon icon--grid"></span><span>Organisation</span></a>
         <a href="#/personen" class="topnav__item" data-route="/personen"><span class="icon icon--person"></span><span>Personen</span></a>
-        <a href="#/bereiche" class="topnav__item" data-route="/bereiche"><span class="icon icon--grid"></span><span>Bereiche</span></a>
         <a href="#/dokumente" class="topnav__item" data-route="/dokumente"><span class="icon icon--doc"></span><span>Dokumente</span></a>
         <a href="#/apps" class="topnav__item" data-route="/apps"><span class="icon icon--apps"></span><span>Apps</span></a>
       </nav>
@@ -617,6 +617,58 @@
           </div>
         </div>
 
+        <div class="grid grid--3">
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Dringlichkeitsquote</div>
+              <div class="kpi__value" id="dash-per-urgentShare">–</div>
+            </div>
+            <div class="card__foot muted">Anteil dringender Anforderungen (mit Bestellung im Zeitraum).</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Versandkosten</div>
+              <div class="kpi__value" id="dash-per-shipTotal">–</div>
+            </div>
+            <div class="card__foot muted">Summe gebuchter Versandkosten im Zeitraum.</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Versandkostenquote</div>
+              <div class="kpi__value" id="dash-per-shipQuote">–</div>
+            </div>
+            <div class="card__foot muted">Versandkosten / Bestellwert (PO-Teile) im Zeitraum.</div>
+          </div>
+        </div>
+
+        <div class="grid grid--3">
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Unter MBW ausgelöst</div>
+              <div class="kpi__value" id="dash-per-underMbw">–</div>
+            </div>
+            <div class="card__foot muted">POs mit Mindestbestellwert-Unterschreitung (im Zeitraum).</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">ZB-Override-Rate</div>
+              <div class="kpi__value" id="dash-per-overrideRate">–</div>
+            </div>
+            <div class="card__foot muted">Anteil der POs, die als ZB-Override ausgelöst wurden.</div>
+          </div>
+
+          <div class="card">
+            <div class="card__kpi">
+              <div class="kpi__label">Versandkosten ZB</div>
+              <div class="kpi__value" id="dash-per-shipZb">–</div>
+            </div>
+            <div class="card__foot muted">Versandkosten, die auf ZB-VERSAND gebucht wurden.</div>
+          </div>
+        </div>
+
         <div class="callout">
           <div class="callout__title">Hinweis</div>
           <div class="callout__text">Alle Kennzahlen basieren auf Mock-Daten und den in der Demo ausgelösten Bestellungen (POs).</div>
@@ -821,7 +873,7 @@
 
       <div class="callout">
         <div class="callout__title">Hinweis</div>
-        <div class="callout__text">Startseite/Personen/Bereiche/Dokumente/Apps sind in dieser Demo bewusst nicht funktional. Interaktiv ist die App <strong>Social Order</strong>.</div>
+        <div class="callout__text">Die Shell erzeugt den Intranet‑Rahmen. Interaktiv sind <strong>Social Order</strong> sowie die Screens <strong>Dokumente</strong> (PDF‑Vorschau) und <strong>Personen</strong> (Verzeichnis). Kalender und Organisation folgen als nächste Ausbaustufen.</div>
       </div>
     </div>
   </template>
@@ -831,7 +883,7 @@
       <div class="page__header">
         <div>
           <h1 class="h1">Personen</h1>
-          <p class="muted">Verzeichnis, Chat und Kommunikation (nur Darstellung).</p>
+          <p class="muted">Mitarbeitendenverzeichnis mit Suche, Filter und Detailansicht. Kommunikation ist in dieser Demo nur Darstellung.</p>
         </div>
       </div>
 
@@ -907,8 +959,8 @@
     <div class="page">
       <div class="page__header">
         <div>
-          <h1 class="h1">Bereiche</h1>
-          <p class="muted">Teamräume, Gruppen und Projekte (nur Darstellung).</p>
+          <h1 class="h1">Organisation</h1>
+          <p class="muted">Fachbereiche, Ämter und Kostenstellen (nur Darstellung).</p>
         </div>
       </div>
 
@@ -949,17 +1001,17 @@
 
       <div class="callout">
         <div class="callout__title">Hinweis</div>
-        <div class="callout__text">Bereiche sind in dieser Demo nicht interaktiv. Sie dienen nur als glaubwürdiger Intranet‑Rahmen.</div>
+        <div class="callout__text">Organisation ist in dieser Demo nicht interaktiv. Sie dient nur als glaubwürdiger Intranet‑Rahmen.</div>
       </div>
     </div>
   </template>
 
-  <template id="tpl-shell-dokumente">
+    <template id="tpl-shell-dokumente">
     <div class="page">
       <div class="page__header">
         <div>
           <h1 class="h1">Dokumente</h1>
-          <p class="muted">Ablage &amp; Suche (Drive‑Look, nur Darstellung).</p>
+          <p class="muted">Ablage &amp; Suche. Projekte und Rahmenverträge mit PDF‑Vorschau.</p>
         </div>
         <div class="page__actions">
           <button class="btn" type="button" disabled>Neu</button>
@@ -971,64 +1023,64 @@
         <aside class="drive__side">
           <div class="drive__sideTitle">Navigation</div>
           <div class="driveNav">
-            <div class="driveNav__item is-active">Meine Ablage</div>
+            <div class="driveNav__item">Meine Ablage</div>
             <div class="driveNav__item">Geteilt mit mir</div>
             <div class="driveNav__item">Teamräume</div>
-            <div class="driveNav__item">Projekte</div>
+            <div class="driveNav__item is-active">Projekte</div>
             <div class="driveNav__item">Archiv</div>
           </div>
+
           <div class="divider"></div>
-          <div class="muted small">Hinweis: In der Demo sind Dokumente nicht echt, die Ansicht ist rein visuell.</div>
+
+          <div class="drive__sideTitle" style="margin-top:6px;">Projekte</div>
+          <div id="docs-projects" class="driveProjects"></div>
+
+          <div class="divider"></div>
+          <div class="muted small">Hinweis: In der Demo liegen Dokumente als statische PDF-Dateien im Projektpaket.</div>
         </aside>
 
         <div class="drive__main">
           <div class="row row--space" style="margin-bottom:10px;">
             <div class="search search--small" style="min-width:260px;">
               <span class="icon icon--search"></span>
-              <input type="search" placeholder="Dokumente durchsuchen…" autocomplete="off" />
+              <input id="docs-search" type="search" placeholder="Dokumente durchsuchen…" autocomplete="off" />
             </div>
-            <div class="muted small">Ansicht: <strong>Meine Ablage</strong></div>
+            <div class="muted small"><span id="docs-breadcrumb">Projekte</span></div>
           </div>
 
-          <div class="driveFolders">
-            <div class="driveFolder">
-              <div class="driveFolder__name">📁 Beschaffung</div>
-              <div class="driveFolder__meta">12 Dateien</div>
-            </div>
-            <div class="driveFolder">
-              <div class="driveFolder__name">📁 Vorlagen</div>
-              <div class="driveFolder__meta">7 Dateien</div>
-            </div>
-            <div class="driveFolder">
-              <div class="driveFolder__name">📁 Projekte</div>
-              <div class="driveFolder__meta">18 Dateien</div>
-            </div>
-          </div>
+          <div class="driveSplit">
+            <div class="driveList">
+              <div class="tableWrap">
+                <table class="table table--drive">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Typ</th>
+                      <th>Geändert</th>
+                      <th>Besitzer</th>
+                      <th class="right">Größe</th>
+                    </tr>
+                  </thead>
+                  <tbody id="docs-table-body"></tbody>
+                </table>
+              </div>
 
-          <div class="tableWrap" style="margin-top:12px;">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Typ</th>
-                  <th>Geändert</th>
-                  <th>Besitzer</th>
-                  <th class="right">Größe</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>Rahmenvertrag_Buerobedarf_2026.pdf</td><td>PDF</td><td>Gestern</td><td>Zentrale Steuerung</td><td class="right">1,2 MB</td></tr>
-                <tr><td>Dienstanweisung_Beschaffung.docx</td><td>DOCX</td><td>Vor 3 Tagen</td><td>Amt 11</td><td class="right">420 KB</td></tr>
-                <tr><td>Leitfaden_Freigaben_und_Gate.pdf</td><td>PDF</td><td>Letzte Woche</td><td>Amt 13</td><td class="right">860 KB</td></tr>
-                <tr><td>Projekt_SocialOrder_Status.pptx</td><td>PPTX</td><td>Letzte Woche</td><td>Projekt Digitalisierung</td><td class="right">3,4 MB</td></tr>
-                <tr><td>AnhangA_Nutzerhandbuch_SocialOrder.docx</td><td>DOCX</td><td>Entwurf</td><td>Leitung</td><td class="right">—</td></tr>
-              </tbody>
-            </table>
+              <div id="docs-empty" class="callout" style="margin-top:10px; display:none;">
+                <div class="callout__title">Keine Treffer</div>
+                <div class="callout__text">In diesem Projekt gibt es aktuell keine Dokumente oder keine Treffer zur Suche.</div>
+              </div>
+            </div>
+
+            <aside class="drivePreview">
+              <div class="drivePreview__title">Vorschau</div>
+              <div id="docs-preview"></div>
+            </aside>
           </div>
         </div>
       </div>
     </div>
   </template>
+
 
   <template id="tpl-shell-apps">
     <div class="page">
@@ -1124,7 +1176,7 @@
             <li><strong>Dashboard (v0.15):</strong> <strong>Drilldown</strong> in der Analyse: Klick auf Balken öffnet Top-POs, Klick auf PO-Zeile öffnet die Detailansicht.</li>
             <li><strong>Dashboard (v0.15.1):</strong> KPI-Logik geglättet (Anforderungen &amp; POs konsistent) + separate Kennzahl <strong>Split-Quote</strong> (Multi-Lieferant) statt „Lieferanten“.</li>
             <li><strong>Dashboard (v0.15.3):</strong> Filter-UX finalisiert: Filterstatus sichtbar, Preset↔Custom ohne Überraschung, Enter=Anwenden, „Filter ändern“ springt mit Fokus.</li>
-            <li><strong>Shell (v0.15.4):</strong> Startseite/Personen/Bereiche/Dokumente/Apps als glaubwürdige Intranet-Screens (ohne Funktionen), Social Order bleibt als App interaktiv.</li>
+            <li><strong>Shell:</strong> Intranet‑Rahmen mit Head‑Navigation. Interaktiv sind Social Order plus ausgewählte Shell‑Screens (Dokumente, Personen).</li>
             <li><strong>Shell (v0.15.6):</strong> Personen: mehr Kontakte, Paging, Filter nach Amt/Einheit, sowie Chat/Anruf/Video‑Buttons je Karte (nur Darstellung).</li>
             <li><strong>Shell (v0.15.7):</strong> Organisations‑Umschalter (Kreisstadt/Landkreis/Landesnetz), Social‑Order‑Navigation erscheint nur innerhalb der App; Rollenwechsel gehört zur App (nicht zur Shell‑Kopfzeile).</li>
             <li><strong>Stabilität (v0.13.2):</strong> Repair/Migration verbessert, damit auch ältere Live-Orders sicher auf die Exempla-Orga gemappt werden und alte Demo-States bereinigt werden.</li>
@@ -1152,8 +1204,6 @@
     </div>
   </template>
 
-	  <script src="assets/js/mock-data.js"></script>
-	  <script src="assets/js/personnel.js"></script>
-	  <script src="assets/js/app.js"></script>
+	  <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

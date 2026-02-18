@@ -1,13 +1,67 @@
-# social_order_v0.16 (Demo)
-
+# social_order_v0.19.2 (Demo)
 Dieses Paket ist ein klickbarer HTML/JS-Prototyp: ein Social-Intranet-Rahmen („GovConnect“) plus eingebettete App „Social Order“ für Bürobedarfs-Anforderungen.
 
 ## Start
-- Öffne `index.html` im Browser (oder über deinen lokalen Testserver in VS Code).
+- Öffne `index.html` über deinen lokalen Testserver (z. B. VS Code Live Server).
 - Es werden **keine** externen Libraries geladen.
 - Daten sind Mock-Daten; Änderungen werden in `localStorage` gespeichert.
 
 > Tipp: Wenn dir „komische Zustände“ auffallen, nutze **Info → Demo zurücksetzen** oder lösche den localStorage-Eintrag im Browser.
+
+## Was ist neu in v0.19.2
+
+- **Personen als eigenes App‑Modul + People‑Model**
+  - Personen‑Screen ist jetzt ein eigenes Modul (`apps/peo_people.js`).
+  - Neues People‑Domain‑Modell (`domain/people.js`) für Verzeichnisdaten (Kontakt‑Mock, Org‑Ableitung).
+  - Klick auf eine Person öffnet ein Detail‑Modal (Kontaktfelder als Mock).
+
+- **Dokumente: weitere Projekte**
+  - Zusätzlich zu Social Order gibt es jetzt Projekte **Dokumente** und **Personen** mit je einer Projekt‑PDF.
+
+## (Historie) Was ist neu in v0.19.1
+
+- **Dokumente projektfähig + PDF‑Vorschau**
+  - Dokumente sind jetzt nach Projekten strukturiert (z. B. **Social Order**).
+  - PDF‑Vorschau direkt in der Dokumente‑Ansicht, Doppelklick öffnet die Datei im Modal.
+  - Statische Demo‑PDFs liegen unter `assets/docs/projects/social-order/`.
+
+- **Router unterstützt Query‑Parameter (Hash)**
+  - Routen wie `#/dokumente?project=social_order&doc=rv1_officepro` funktionieren, ohne dass die Navigation bricht.
+
+## (Historie) Was ist neu in v0.19.0
+
+- **Head-Navigation umgestellt**
+  - Reihenfolge jetzt: **Startseite · Kalender · Organisation · Personen · Dokumente · Apps**
+  - **Chronik** ist nicht mehr in der Kopfzeile, der Zugriff läuft über das **Glocken-Symbol** (Activity) und die Route bleibt erreichbar.
+  - **Bereiche** heißt jetzt im UI **Organisation** (Label und Screen-Überschrift).
+
+- **Verträge bleiben Single Source of Truth**
+  - Rahmenverträge inkl. Artikellisten liegen weiterhin unter `assets/js/domain/contracts/*`.
+  - `MOCK.suppliers` und `MOCK.catalog` werden daraus abgeleitet, keine doppelte Pflege.
+
+## (Historie) Was ist neu in v0.18.9.1
+
+- **Sonderbedarf-Begründung ist wieder Pflicht**
+  - Wenn mindestens ein Artikel im Warenkorb als **Sonderbedarf** markiert ist, blockt der Submit ohne Begründung.
+  - Ursache war, dass das Sonderbedarf-Signal nicht in die Gate-Engine weitergegeben wurde.
+
+## (Historie) Was ist neu in v0.18.6.2
+
+- **Vertragsdaten als Single Source of Truth vorbereitet**
+  - Neue Struktur unter `assets/js/domain/contracts/*` hält Rahmenverträge **inklusive Artikellisten**.
+  - `assets/js/contracts.js` re-exportiert daraus die bisherigen Textbausteine (UI bleibt kompatibel).
+  - `MOCK.suppliers` und `MOCK.catalog` werden jetzt aus den Vertragsdaten abgeleitet, statt doppelt gepflegt.
+
+- **Store-Fallback erweitert**
+  - `localStorage`-Fallback berücksichtigt jetzt auch v0.18.5.
+
+## Hinweise
+
+Die in v0.18.3 eingeführten Umbenennungen (`so_batch.js`, `so_dashboard.js`) bleiben bestehen.
+  - Dashboard-View (`mountDashboard`) liegt jetzt in `assets/js/apps/dashboard.js`.
+  - `app.js` ruft Dashboard über eine injizierte Context-Schnittstelle auf (keine Funktionsänderung).
+  - Hinweis: Der Bestelllauf war bereits in v0.18.0 nach `assets/js/apps/batch.js` ausgelagert.
+  - Ziel: app.js weiter verkleinern und die großen Domänenblöcke isolieren.
 
 ## Was ist neu in v0.15.6
 - **Personen (Shell) erweitert**:
