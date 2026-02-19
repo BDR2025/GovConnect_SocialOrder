@@ -13,6 +13,7 @@
     })();
   </script>
   <link rel="stylesheet" href="assets/css/app.css" />
+  <link rel="stylesheet" href="assets/css/calendar.css" />
 </head>
 <body>
   <div class="app">
@@ -716,6 +717,35 @@
     </div>
   </template>
 
+
+  <!-- ----------------------------------------------------------
+       Raumbuchung (Demo-App) – nutzt GovConnect Kalender (Blocks)
+       ---------------------------------------------------------- -->
+  <template id="tpl-app-rooms">
+    <div class="page">
+      <div class="page__header">
+        <div>
+          <h1 class="h1">Raumbuchung</h1>
+          <p class="muted">Räume, Ausstattung und Termine. Buchungen erzeugen automatisch einen Kalendereintrag für Bucher &amp; Eingeladene.</p>
+        </div>
+        <div class="page__actions">
+          <a class="btn" href="#/kalender"><span class="icon icon--calendar" aria-hidden="true"></span> Kalender</a>
+        </div>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__title">Schnellbuchung</div>
+          <div class="card__body" id="rb-form"></div>
+        </div>
+        <div class="card">
+          <div class="card__title">Räume</div>
+          <div class="card__body" id="rb-rooms"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
   
   <template id="tpl-chronik">
     <div class="page">
@@ -802,13 +832,13 @@
                   <div class="appTile__meta">Bürobedarf &amp; Bestellung</div>
                 </div>
               </a>
-              <div class="appTile appTile--disabled">
+              <a class="appTile" href="#/raumbuchung">
                 <div class="appTile__icon"><span class="icon icon--grid"></span></div>
                 <div>
                   <div class="appTile__name">Raumbuchung</div>
                   <div class="appTile__meta">Räume &amp; Ausstattung</div>
                 </div>
-              </div>
+              </a>
               <div class="appTile appTile--disabled">
                 <div class="appTile__icon"><span class="icon icon--grid"></span></div>
                 <div>
@@ -1081,6 +1111,20 @@
   </template>
 
 
+  <template id="tpl-shell-kalender">
+    <div class="page">
+      <div id="calendar-root"></div>
+    </div>
+  </template>
+
+
+  <template id="tpl-shell-raumbuchung">
+    <div class="page">
+      <div id="rb-root"></div>
+    </div>
+  </template>
+
+
   <template id="tpl-shell-apps">
     <div class="page">
       <div class="page__header">
@@ -1113,11 +1157,11 @@
               <div class="appCard__meta">Reservierung &amp; Schlüsselübergabe</div>
             </div>
 
-            <div class="appCard appCard--disabled">
+            <a class="appCard" href="#/raumbuchung">
               <div class="appCard__icon"><span class="icon icon--grid"></span></div>
               <div class="appCard__name">Raumbuchung</div>
               <div class="appCard__meta">Räume, Ausstattung, Termine</div>
-            </div>
+            </a>
 
             <div class="appCard appCard--disabled">
               <div class="appCard__icon"><span class="icon icon--grid"></span></div>
@@ -1159,7 +1203,7 @@
       <div class="card">
         <div class="card__body">
           <h2 class="h2">Version</h2>
-          <p><strong>social_order_v0.16</strong></p>
+          <p><strong>social_order_v0.20.3.3</strong></p>
 
           <h2 class="h2">Was ist drin</h2>
           <ul class="bullets">

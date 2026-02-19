@@ -1,4 +1,4 @@
-# social_order_v0.19.3.1 (Demo)
+# social_order_v0.20.3.5 (Demo)
 Dieses Paket ist ein klickbarer HTML/JS-Prototyp: ein Social-Intranet-Rahmen („GovConnect“) plus eingebettete App „Social Order“ für Bürobedarfs-Anforderungen.
 
 ## Start
@@ -8,7 +8,27 @@ Dieses Paket ist ein klickbarer HTML/JS-Prototyp: ein Social-Intranet-Rahmen (�
 
 > Tipp: Wenn dir „komische Zustände“ auffallen, nutze **Info → Demo zurücksetzen** oder lösche den localStorage-Eintrag im Browser.
 
-## Was ist neu in v0.19.3.1
+## Was ist neu in v0.20.3.5
+
+- **Raumbuchung (MVP)**
+  - Räume finden über Haus, Kapazität, Suche und Ausstattung.
+  - Buchung erzeugt Raumblock (Belegung) plus Kalenderkopien für Bucher/Eingeladene.
+  - Raum-Details als Modal mit großem Foto.
+- **UI-Polish: Filter & Form-Felder**
+  - Filterzeile (Haus/Kapazität/Suche) als sauberes Grid, keine Überlappungen.
+  - Einheitliche Feldhöhen (Safari-safe) in Schnellbuchung und Finder.
+- **Dokumente**
+  - Infobrief „Mitarbeiterinformation: Projekt Raumbuchung“ als PDF im Projektordner.
+
+## (Historie) Was ist neu in v0.20.1.0
+
+- **Kalender als Vollansicht (light)**
+  - Arbeitswoche, Woche, Monat, Agenda (Outlook‑Feeling, minimalistisch).
+  - Mini‑Monat ist jetzt korrekt Monday‑first.
+- **Kalender-Events aus Social Order**
+  - Meilensteine werden als Events im Kalender der Prozessbeteiligten geschrieben (Delta, nicht als Massendaten).
+
+## (Historie) Was ist neu in v0.20.0.1
 
 - Organisation: Verwaltungsspitze (Oberbürgermeisterin) ist als oberster Knoten sichtbar.
 - Organisation: Startansicht ist kompakt (Fachbereiche sichtbar, Ämter erst nach Klick auf Fachbereich).
