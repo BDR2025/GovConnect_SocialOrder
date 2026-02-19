@@ -26,6 +26,8 @@ export function mountBatch(ctx){
     openModal,
     closeModal,
     nowIso,
+    eventHub,
+    soParticipantsForOrder,
     escapeHtml,
     util
   } = ctx;
@@ -440,6 +442,21 @@ export function mountBatch(ctx){
       // Activity: requester sees split fact
       const vCount = (o.splits || []).length;
       pushActivity({ text: `${o.id} im Bestelllauf (aufgeteilt in ${vCount} Lieferanten)`, orderId: o.id, audience: ["user"] });
+      if(eventHub && typeof eventHub.logEvent === "function"){
+        const parts = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(o) : [o.ownerId];
+        eventHub.logEvent({
+          type: "SO_BATCH_STARTED",
+          ts: now,
+          title: `${o.id}: Bestelllauf gestartet`,
+          text: `Aufgeteilt in ${vCount} Lieferanten.`,
+          actorId: (caps && caps.userId) ? caps.userId : "central",
+          subject: { kind: "so", id: o.id },
+          participants: parts,
+          visibility: { mode: "participants" },
+          dedupeKey: `${o.id}|SO_BATCH_STARTED|${now.slice(0,10)}`
+        });
+      }
+
     }
 
     state.ui.lastBatch = {
@@ -508,6 +525,21 @@ export function mountBatch(ctx){
 
         syncAggregate(o);
         pushActivity({ text: `${o.id}: Teilbestellung ${vendor} bestellt (${g.poNumber})`, orderId: o.id, audience: ["user"] });
+        if(eventHub && typeof eventHub.logEvent === "function"){
+          const parts2 = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(o) : [o.ownerId];
+          eventHub.logEvent({
+            type: "SO_PO_PLACED",
+            ts: now,
+            title: `${o.id}: Bestellt (${g.poNumber})`,
+            text: `${vendor} · PO ${g.poNumber}`,
+            actorId: (caps && caps.userId) ? caps.userId : "central",
+            subject: { kind: "so", id: o.id },
+            participants: parts2,
+            visibility: { mode: "participants" },
+            dedupeKey: `${o.id}|SO_PO_PLACED|${g.poNumber}|${vendor}`
+          });
+        }
+
       }
 
       batch.groups[vendor] = g;
@@ -623,6 +655,36 @@ export function mountBatch(ctx){
       syncAggregate(o);
 
       pushActivity({ text: `${o.id}: Teilbestellung ${vendor} abgeschlossen`, orderId: o.id, audience: ["user"] });
+      if(eventHub && typeof eventHub.logEvent === "function"){
+        const parts3 = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(o) : [o.ownerId];
+        eventHub.logEvent({
+          type: "SO_DELIVERED",
+          ts: now,
+          title: `${o.id}: Geliefert`,
+          text: `${vendor} · Lieferung eingegangen.`,
+          actorId: "delivery",
+          subject: { kind: "so", id: o.id },
+          participants: parts3,
+          visibility: { mode: "participants" },
+          dedupeKey: `${o.id}|SO_DELIVERED|${vendor}|${now.slice(0,10)}`
+        });
+
+        // if all parts closed, also write closed marker
+        if(String(o.status||"") === "Abgeschlossen"){
+          eventHub.logEvent({
+            type: "SO_CLOSED",
+            ts: now,
+            title: `${o.id}: Abgeschlossen`,
+            text: "Vorgang abgeschlossen.",
+            actorId: "system",
+            subject: { kind: "so", id: o.id },
+            participants: parts3,
+            visibility: { mode: "participants" },
+            dedupeKey: `${o.id}|SO_CLOSED|${now.slice(0,10)}`
+          });
+        }
+      }
+
     }
 
     batch.groups[vendor] = g;

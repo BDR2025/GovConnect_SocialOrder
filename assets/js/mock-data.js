@@ -1,15 +1,144 @@
-/* social_order_v0.19.3.1 · Mock-Daten (keine externen Abhängigkeiten)
+/* social_order_v0.20.1.0 · Mock-Daten (keine externen Abhängigkeiten)
    Hinweis: Version steht zusätzlich in MOCK.meta.version */
 
 import { DEMO_SUPPLIERS, DEMO_CATALOG } from "./domain/contracts/index.js";
 
 export const MOCK = {
   "meta": {
-    "version": "0.19.3.1",
+    "version": "0.20.1.0",
     "currency": "EUR",
     "cutoffLabel": "Di 11:00",
     "gateThreshold": 25
   },
+
+  // ------------------------------------------------------------
+  // GovConnect Demo: Raumbuchung (Stammdaten)
+  // - Räume sind in dieser Demo für alle buchbar ("frei ist frei").
+  // - Buchungen laufen später über den GovConnect Kalender (GcBlock Deltas).
+  // ------------------------------------------------------------
+  "houses": [
+    { "id": "H1", "label": "Haus 1", "name": "Rathaus", "addressShort": "Hauptstraße 1" },
+    { "id": "H2", "label": "Haus 2", "name": "Verwaltungsgebäude", "addressShort": "Nebenstraße 12" },
+    { "id": "H3", "label": "Haus 3", "name": "Bürgerzentrum", "addressShort": "Parkallee 7" }
+  ],
+
+  "rooms": [
+    {
+      "id": "R-H3-S01",
+      "houseId": "H3",
+      "locationLine": "2. OG · Westflügel",
+      "displayName": "Saal Sophia Kallmair",
+      "capacity": 60,
+      "type": "Saal",
+      "equipmentTags": ["Teams-System", "Beamer", "Leinwand", "Funkmikrofone", "Whiteboard"],
+      "seating": {
+        "mode": "selectable",
+        "default": "Parlament",
+        "options": ["Parlament", "U-Form", "Reihen", "Stehempfang"]
+      },
+      "namedAfter": {
+        "person": "Sophia Kallmair",
+        "role": "Bürgermeisterin",
+        "years": "1921–1933",
+        "shortHistory": "Benannt nach Sophia Kallmair, Bürgermeisterin von 1921 bis 1933. Sie gilt als frühe Modernisiererin der Verwaltung und Initiatorin der ersten zentralen Bürgerdienste."
+      },
+      "image": "assets/img/rooms/room_r-h3-s01_sophia-kallmair.png"
+    },
+
+    {
+      "id": "R-H1-K01",
+      "houseId": "H1",
+      "locationLine": "1. OG · Nordflügel",
+      "displayName": "Konferenzraum Ludwig",
+      "capacity": 16,
+      "type": "Konferenzraum",
+      "equipmentTags": ["75\" Display", "Teams-Bar", "Whiteboard", "HDMI"],
+      "seating": { "mode": "fixed", "default": "Tischblock" },
+      "namedAfter": {
+        "person": "Ludwig Faber",
+        "role": "Stadtkämmerer",
+        "years": "1954–1968",
+        "shortHistory": "Der Raum erinnert an Ludwig Faber, der nach der Verwaltungsreform als erster Stadtkämmerer die Haushaltssteuerung modernisierte. In seiner Amtszeit wurden Beschaffungsstandards und die zentrale Budgetübersicht eingeführt – Grundlagen, die bis heute wirken."
+      },
+      "image": "assets/img/rooms/room_r-h1-k01_ludwig.png"
+    },
+
+    {
+      "id": "R-H3-K02",
+      "houseId": "H3",
+      "locationLine": "EG · Ostflügel",
+      "displayName": "Konferenzraum Gemeinde Köllerbach",
+      "capacity": 12,
+      "type": "Konferenzraum",
+      "equipmentTags": ["Beamer (mobil)", "Whiteboard", "Konferenzlautsprecher"],
+      "seating": { "mode": "fixed", "default": "Tischblock" },
+      "namedAfter": {
+        "person": "Gemeinde Köllerbach",
+        "role": "Ortsteil",
+        "years": "Pilot 2014–2016",
+        "shortHistory": "Die Gemeinde Köllerbach war eine der ersten, die ihre Verwaltungsprozesse in einem interkommunalen Pilotverbund geöffnet hat. Sie steht in Exempla als Symbol dafür, dass Modernisierung nicht nur aus dem Rathaus kommt, sondern oft aus pragmatischen Lösungen in den Ortsteilen."
+      },
+      "image": "assets/img/rooms/room_r-h3-k02_koellerbach.png"
+    },
+
+    {
+      "id": "R-H2-SCH01",
+      "houseId": "H2",
+      "locationLine": "3. OG · Südflügel",
+      "displayName": "Schulungsraum Digitalwerkstatt",
+      "capacity": 28,
+      "type": "Schulungsraum",
+      "equipmentTags": ["Beamer", "Whiteboard", "Trainer-PC", "Dokumentenkamera"],
+      "seating": {
+        "mode": "selectable",
+        "default": "Classroom",
+        "options": ["Classroom", "U-Form", "Inseln"]
+      },
+      "namedAfter": {
+        "person": "Digitalwerkstatt",
+        "role": "Lernraum",
+        "years": "seit 2020",
+        "shortHistory": "Die Digitalwerkstatt wurde als interner Lernraum gegründet, nachdem mehrere Vorhaben an fehlender Anwenderkompetenz gescheitert waren. Heute ist sie der feste Ort für Onboarding, Praxisformate und Schulungen."
+      },
+      "image": "assets/img/rooms/room_r-h2-sch01_digitalwerkstatt.png"
+    },
+
+    {
+      "id": "R-H2-PC01",
+      "houseId": "H2",
+      "locationLine": "2. OG · Ostflügel",
+      "displayName": "PC-Arbeitsraum Datenbüro",
+      "capacity": 10,
+      "type": "PC-Arbeitsraum",
+      "equipmentTags": ["10 PC-Plätze", "2 Monitore/Platz", "Scanner", "Drucker"],
+      "seating": { "mode": "fixed", "default": "PC-Plätze" },
+      "namedAfter": {
+        "person": "Datenbüro",
+        "role": "Arbeitsraum",
+        "years": "seit 2018",
+        "shortHistory": "Das Datenbüro entstand als Ausweichfläche für Statistik und Berichtswesen in Hochphasen der Haushaltsplanung. Heute wird es für Auswertungen, Seriendokumente und konzentrierte Arbeit mit fester Technik genutzt."
+      },
+      "image": "assets/img/rooms/room_r-h2-pc01_datenbuero.png"
+    },
+
+    {
+      "id": "R-H1-PROJ01",
+      "houseId": "H1",
+      "locationLine": "EG · Westflügel",
+      "displayName": "Projektstudio Rathauslabor",
+      "capacity": 8,
+      "type": "Projektstudio",
+      "equipmentTags": ["55\" Display", "Whiteboard-Wand", "Pinwand", "Moderationskoffer"],
+      "seating": { "mode": "fixed", "default": "Workshop-Setting" },
+      "namedAfter": {
+        "person": "Rathauslabor",
+        "role": "Projektstudio",
+        "years": "seit 2022",
+        "shortHistory": "Das Rathauslabor wurde als Raum für bereichsübergreifende Projektteams eingerichtet, damit Entscheidungen sichtbar, schnell und dokumentierbar entstehen. Der Fokus liegt auf Visualisierung und Arbeitsständen – nicht auf Repräsentation."
+      },
+      "image": "assets/img/rooms/room_r-h1-proj01_rathauslabor.png"
+    }
+  ],
 
   // ------------------------------------------------------------
   // Exempla: Organisationsstruktur (für Demo / Stammdaten)

@@ -1,4 +1,4 @@
-/* social_order_v0.19.3.1 · core/store (ESM)
+/* social_order_v0.20.3.0 · core/store (ESM)
    Persistenter Demo-State (localStorage), tolerant gegenüber älteren Keys.
    Enthält nur Speicher-/Seed-Logik, kein UI- oder Domänenwissen.
 */
@@ -11,6 +11,25 @@ export function createStore({ version, state, mock, deepClone, ensureSession, pe
 
   // Tolerant gegenüber Zwischenständen (ohne v-Prefix) und älteren Versionen.
   const STORAGE_KEYS_FALLBACK = [
+    // v0.20.x
+    "social_order_state_0_20_3_4",
+    "social_order_state_v0_20_3_4",
+    "social_order_state_0_20_3_3",
+    "social_order_state_v0_20_3_3",
+    "social_order_state_0_20_3_2",
+    "social_order_state_v0_20_3_2",
+
+    "social_order_state_0_20_2_0",
+    "social_order_state_v0_20_2_0",
+
+    "social_order_state_0_20_1_0",
+    "social_order_state_v0_20_1_0",
+
+    "social_order_state_0_20_0_1",
+    "social_order_state_v0_20_0_1",
+    "social_order_state_0_20_0_0",
+    "social_order_state_v0_20_0_0",
+
     // (tolerant) Letzte Versionen
     "social_order_state_0_19_3_1",
     "social_order_state_v0_19_3_1",
@@ -156,6 +175,10 @@ export function createStore({ version, state, mock, deepClone, ensureSession, pe
 
       // Activities (optional in older versions)
       state.activities = Array.isArray(s.activities) ? s.activities : [];
+      // GovConnect Event Hub (delta only)
+      state.gcEventsDelta = Array.isArray(s.gcEventsDelta) ? s.gcEventsDelta : [];
+      state.gcBlocksDelta = Array.isArray(s.gcBlocksDelta) ? s.gcBlocksDelta : [];
+
 
       // UI: merge (keeps defaults for new fields)
       state.ui = Object.assign({}, state.ui, (s.ui || {}));
@@ -193,6 +216,9 @@ export function createStore({ version, state, mock, deepClone, ensureSession, pe
         historyOrders: state.historyOrders,
         catalog: state.catalog,
         activities: state.activities,
+        gcEventsDelta: state.gcEventsDelta,
+        gcBlocksDelta: state.gcBlocksDelta,
+
         ui: state.ui
       }));
     }catch(_){/* ignore */}

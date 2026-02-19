@@ -119,7 +119,20 @@ export const DOC_PROJECTS = [
     name: "Raumbuchung",
     owner: "Organisation",
     hint: "Räume, Ausstattung, Termine",
-    docs: []
+    docs: [
+      {
+        id: "rb_info",
+        projectId: "room_booking",
+        type: "pdf",
+        title: "Mitarbeiterinformation: Projekt Raumbuchung",
+        subtitle: "Information der Oberbürgermeisterin",
+        file: "assets/docs/projects/raumbuchung/doc_project_raumbuchung_info.pdf",
+        owner: "Oberbürgermeisterin",
+        changed: "19.02.2026",
+        sizeBytes: 173744,
+        tags: ["Projekt", "Information", "Raumbuchung"]
+      }
+    ]
   },
   {
     id: "fleet",

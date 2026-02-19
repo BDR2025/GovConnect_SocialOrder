@@ -21,7 +21,9 @@ export function mountNewOrder(ctx){
     ALL_LOCATIONS,
     formatOrgUnit,
     pushActivity,
-    nowIso
+    nowIso,
+    eventHub,
+    soParticipantsForOrder
   } = ctx;
 
   const catalogEl = document.getElementById("catalog");
@@ -473,7 +475,7 @@ export function mountNewOrder(ctx){
     const gateReason = gate.gateReason;
 
     const id = nextOrderId();
-    const now = typeof nowIso === 'function' ? nowIso() : new Date().toISOString();
+    const now = (typeof nowIso === "function") ? nowIso() : new Date().toISOString();
 
     const p = typeof permissions === 'function' ? permissions() : { userId: null, user: null };
     const who = p.user ? p.user.name : "Mitarbeitende";
@@ -514,6 +516,48 @@ export function mountNewOrder(ctx){
         pushActivity({ text: `Freigegeben: ${id} bereit für Bestelllauf`, orderId: id, audience: ["central"] });
       }
       pushActivity({ text: `Transparenz: ${id} im Audit-Trail nachvollziehbar`, orderId: id, audience: ["lead"] });
+    }
+
+    // Kalender (GovConnect Event Hub)
+    if(eventHub && typeof eventHub.logEvent === "function"){
+      const parts = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(order) : [p.userId];
+      eventHub.logEvent({
+        type: "SO_CREATED",
+        ts: now,
+        title: `${id}: Anforderung erfasst`,
+        text: `Status: ${status}`,
+        actorId: p.userId,
+        subject: { kind: "so", id },
+        participants: parts,
+        visibility: { mode: "participants" },
+        dedupeKey: `${id}|SO_CREATED|v1`
+      });
+
+      if(needsGate){
+        eventHub.logEvent({
+          type: "SO_GATE_REQUIRED",
+          ts: now,
+          title: `${id}: In Freigabe`,
+          text: gateReason ? `Gate: ${gateReason}` : "Gate erforderlich",
+          actorId: "system",
+          subject: { kind: "so", id },
+          participants: parts,
+          visibility: { mode: "participants" },
+          dedupeKey: `${id}|SO_GATE_REQUIRED|v1`
+        });
+      } else {
+        eventHub.logEvent({
+          type: "SO_AUTO_APPROVED",
+          ts: now,
+          title: `${id}: Sofort freigegeben`,
+          text: "Standardfall ohne Gate.",
+          actorId: "system",
+          subject: { kind: "so", id },
+          participants: parts,
+          visibility: { mode: "participants" },
+          dedupeKey: `${id}|SO_AUTO_APPROVED|v1`
+        });
+      }
     }
 
     openModal(`

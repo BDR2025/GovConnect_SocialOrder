@@ -1,4 +1,4 @@
-/* social_order_v0.19.3.1 · apps/org_organisation (ESM)
+/* social_order_v0.20.0.1 · apps/org_organisation (ESM)
    Organisation – interaktives Organigramm (Kartenbaum) + Detailpanel.
 
    Anforderungen:

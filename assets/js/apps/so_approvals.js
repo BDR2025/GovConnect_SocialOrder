@@ -14,6 +14,8 @@ export function mountApprovals(ctx){
     openModal,
     closeModal,
     nowIso,
+    eventHub,
+    soParticipantsForOrder,
     pushActivity,
     escapeHtml,
     util,
@@ -84,6 +86,21 @@ export function mountApprovals(ctx){
     saveState();
     pushActivity({ text: `Freigegeben: ${order.id}`, orderId: order.id, audience: ["user"] });
     pushActivity({ text: `Freigegeben: ${order.id} bereit für Bestelllauf`, orderId: order.id, audience: ["central"] });
+    if(eventHub && typeof eventHub.logEvent === "function"){
+      const parts = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(order) : [order.ownerId];
+      eventHub.logEvent({
+        type: "SO_APPROVAL_GRANTED",
+        ts: nowIso(),
+        title: `${order.id}: Freigabe erteilt`,
+        text: "Freigabe durch Fachbereich erteilt.",
+        actorId: p.userId || "approver",
+        subject: { kind: "so", id: order.id },
+        participants: parts,
+        visibility: { mode: "participants" },
+        dedupeKey: `${order.id}|SO_APPROVAL_GRANTED|v1`
+      });
+    }
+
   }
 
   function reject(order){
@@ -102,6 +119,21 @@ export function mountApprovals(ctx){
     saveState();
     pushActivity({ text: `Abgelehnt: ${order.id}`, orderId: order.id, audience: ["user"] });
     pushActivity({ text: `Abgelehnt: ${order.id} (Kontroll- und Governance-Fall)`, orderId: order.id, audience: ["lead"] });
+    if(eventHub && typeof eventHub.logEvent === "function"){
+      const parts = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(order) : [order.ownerId];
+      eventHub.logEvent({
+        type: "SO_REJECTED",
+        ts: nowIso(),
+        title: `${order.id}: Abgelehnt`,
+        text: "Anforderung wurde abgelehnt.",
+        actorId: p.userId || "approver",
+        subject: { kind: "so", id: order.id },
+        participants: parts,
+        visibility: { mode: "participants" },
+        dedupeKey: `${order.id}|SO_REJECTED|v1`
+      });
+    }
+
   }
 
   function question(order){
@@ -150,6 +182,21 @@ export function mountApprovals(ctx){
 
         pushActivity({ text: `Rückfrage zu ${id}: ${txt}`, orderId: id, audience: ["user"] });
         pushActivity({ text: `Rückfrage gestellt: ${id}`, orderId: id, audience: ["lead"] });
+        if(eventHub && typeof eventHub.logEvent === "function"){
+          const parts = (typeof soParticipantsForOrder === "function") ? soParticipantsForOrder(order) : [order.ownerId];
+          eventHub.logEvent({
+            type: "SO_QUERY_ASKED",
+            ts: nowIso(),
+            title: `${id}: Rückfrage gestellt`,
+            text: txt,
+            actorId: p.userId || "approver",
+            subject: { kind: "so", id },
+            participants: parts,
+            visibility: { mode: "participants" },
+            dedupeKey: `${id}|SO_QUERY_ASKED|${order.question && order.question.at ? order.question.at : "v1"}`
+          });
+        }
+
         closeModal();
         render();
       });

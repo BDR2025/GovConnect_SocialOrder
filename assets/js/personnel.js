@@ -82,7 +82,6 @@ const procurementChief = {
 
 // 2 Admins in der ZB
 const centralTeam = [
-  procurementChief,
   {
     id:"p_vh",
     name:"Verena Hartmann",

@@ -1,4 +1,4 @@
-/* social_order_v0.19.3.1 · GovConnect Shell + Social Order Demo
+/* social_order_v0.20.3.0 · GovConnect Shell + Social Order Demo
    Features: Multi-Lieferanten-Warenkorb + automatische Aufsplittung im Bestelllauf (pro Lieferant) + Teilstatus
    v0.12: Exempla-Orga (Fachbereiche/Ämter) + Kostenstellen mit Klarname + Verwendungszweck/Bestellgrund
    v0.13: Dashboard: Tabs "Steuerung"/"Lagebild" + Filter (Fachbereich/Amt) + Mix-Umschaltung (Lieferant/Rahmenvertrag, Wert/Anzahl) + Trend als Balken
@@ -24,6 +24,13 @@ import { mountApprovals as mountApprovalsImpl } from "./apps/so_approvals.js";
 import { mountDocuments as mountDocumentsImpl } from "./apps/doc_documents.js";
 import { mountPeople as mountPeopleImpl } from "./apps/peo_people.js";
 import { mountOrganisation as mountOrganisationImpl } from "./apps/org_organisation.js";
+import { mountCalendar as mountCalendarImpl } from "./apps/cal_calendar.js";
+import { mountRoomBooking as mountRoomBookingImpl } from "./apps/rb_rooms.js";
+import { createEventHub } from "./core/eventhub.js";
+
+// Raumbuchung: Stammdaten (Häuser/Räume/Bestuhlung)
+import { ROOMS as RB_ROOMS, HOUSES as RB_HOUSES, SEATING_OPTIONS as RB_SEATING_OPTIONS } from "./rooms.js";
+
 
 import { orderTotal, orderVendors, orderVendor, splitParts, syncAggregate, statusCategory, orderGateReason } from "./domain/order.js";
 import { buildOrgIndex } from "./domain/org.js";
@@ -36,7 +43,7 @@ import { createHashRouter } from "./core/router.js";
   // NOTE: formatting helpers come from core/utils (eur/dt).
   const mock = MOCK;
 
-  const VERSION = "0.19.3.1";
+  const VERSION = "0.20.3.5";
   const PERSONNEL = PERSONNEL_DATA;
   const PEOPLE = PERSONNEL && Array.isArray(PERSONNEL.people) ? PERSONNEL.people : [];
   const LEADERSHIP = PERSONNEL && PERSONNEL.leadership ? PERSONNEL.leadership : {};
@@ -81,6 +88,10 @@ import { createHashRouter } from "./core/router.js";
     historyOrders: [],
     catalog: [],
     activities: [],
+    // GovConnect global event hub (delta only, baseline is generated)
+    gcEventsDelta: [],
+    gcBlocksDelta: [],
+
     ui: {
       // GovConnect shell (Demo) – active organisation context
       orgContext: "city", // city | county | state
@@ -102,6 +113,9 @@ import { createHashRouter } from "./core/router.js";
       dashboardMixMetric: "value", // value | count
       dashboardAnaMetric: "value", // Analyse: value | count
       approvalsSelectedId: null,
+      // Kalender
+      calendar: { view: "agenda", focusDate: "", selectedUserId: "" },
+
       // Aktivitätsfeed: v0.16.0 pro Nutzer
       activitySeenAtByUser: {},
       // Legacy (ältere Stände): role-basiert
@@ -140,6 +154,16 @@ import { createHashRouter } from "./core/router.js";
     people: PEOPLE
   });
   const { STORAGE_KEY, STORAGE_KEYS_FALLBACK, loadState, saveState, resetDemo, initData: initDataCore } = store;
+  // ---------- GovConnect Event Hub (core/eventhub) ----------
+  const eventHub = createEventHub({
+    state,
+    saveState,
+    people: PEOPLE,
+    leadership: LEADERSHIP,
+    seed: "gc_2026",
+    soOrderVisibleToUser
+  });
+
 
   function initData(){
     initDataCore();
@@ -402,6 +426,50 @@ const ALL_LOCATIONS = ORG_INDEX.ALL_LOCATIONS;
     const caps = permissions();
     const arr = Array.isArray(list) ? list : state.orders;
     return arr.filter(o=>orderVisibleToUser(o, caps));
+  }
+
+  // Sichtbarkeit von Social-Order-Kalender-Events nach Persona-Scope (wie "Meine Anforderungen").
+  // Wird vom GovConnect Event Hub genutzt, um SO-Events nicht nur über "participants" zu filtern.
+  function capsForUserId(userId){
+    const u = personById(userId) || getPersonById(userId);
+    if(!u) return { user: null, userId: userId, leadOrg: null, leadDept: null, leadUnit: null, approverDept: null, isCentral: false };
+
+    const roles = Array.isArray(u.roles) ? u.roles : [];
+    const findRoleLocal = (key, scopeType) => roles.find(r => r && r.key === key && (!scopeType || r.scopeType === scopeType)) || null;
+
+    const leadOrg = findRoleLocal("lead", "org");
+    const leadDept = findRoleLocal("lead", "dept");
+    const leadUnit = findRoleLocal("lead", "unit");
+    let approverDept = findRoleLocal("approver", "dept");
+
+    // In dieser Demo übernimmt die Fachbereichsleitung die Freigabe (Gate-Fälle).
+    if(!approverDept && leadDept){
+      approverDept = Object.assign({}, leadDept, { key: "approver" });
+    }
+
+    const isCentral = roles.some(r => r && r.key === "central");
+
+    return { user: u, userId: u.id, leadOrg, leadDept, leadUnit, approverDept, isCentral };
+  }
+
+  function getOrderByIdAny(orderId){
+    const key = String(orderId || "");
+    if(!key) return null;
+    const a = (state.orders || []).find(o => o && String(o.id) === key);
+    if(a) return a;
+    const h = (state.historyOrders || []).find(o => o && String(o.id) === key);
+    return h || null;
+  }
+
+  function soOrderVisibleToUser(orderId, userId){
+    if(!orderId || !userId) return false;
+    const order = getOrderByIdAny(orderId);
+    if(!order) return false;
+
+    // Wenn der aufrufende Code explizit eine Persona-ID mitgibt, nutzen wir deren Rollen/Sichtbarkeit.
+    // Für den Standardfall (current session user) nehmen wir die voll berechneten Caps aus permissions().
+    const caps = (String(userId) === String(getCurrentUserId())) ? permissions() : capsForUserId(userId);
+    return orderVisibleToUser(order, caps);
   }
 
   // Interne Kostenstellen (nur für Buchungs-/KPI-Logik, nicht zur Auswahl in der Front Door)
@@ -1018,6 +1086,51 @@ const ALL_LOCATIONS = ORG_INDEX.ALL_LOCATIONS;
     els.content.innerHTML = tpl("tpl-shell-apps");
   }
 
+  function renderShellKalender(){
+    els.content.innerHTML = tpl("tpl-shell-kalender");
+    mountCalendar();
+  }
+
+  function renderShellRaumbuchung(){
+    els.content.innerHTML = tpl("tpl-shell-raumbuchung");
+    mountRoomBooking();
+  }
+
+  function mountCalendar(){
+    return mountCalendarImpl({
+      state,
+      saveState,
+      permissions,
+      eventHub,
+      people: PEOPLE,
+      getCurrentUserId,
+      getPersonById,
+      navTo,
+      escapeHtml,
+      util
+    });
+  }
+
+  function mountRoomBooking(){
+    return mountRoomBookingImpl({
+      state,
+      saveState,
+      eventHub,
+      rooms: RB_ROOMS,
+      houses: RB_HOUSES,
+      seatingOptions: RB_SEATING_OPTIONS,
+      people: PEOPLE,
+      leadership: LEADERSHIP,
+      orgModel: ORG_MODEL,
+      openModal,
+      closeModal,
+      getCurrentUserId,
+      getPersonById,
+      navTo
+    });
+  }
+
+
 
   // ---------- View: Dokumente (Drive) ----------
   function mountDocuments(){
@@ -1143,7 +1256,8 @@ function mountOrganisation(){
 
     // Legacy placeholders
     "/chats": () => renderPlaceholder("Chats"),
-    "/kalender": () => renderPlaceholder("Kalender"),
+    "/kalender": () => renderShellKalender(),
+    "/raumbuchung": () => renderShellRaumbuchung(),
     "/feed": () => renderPlaceholder("Neuigkeiten"),
     "/newsroom": () => renderPlaceholder("Newsroom"),
     "/gruppen": () => renderPlaceholder("Gruppen"),
@@ -1212,6 +1326,8 @@ function mountOrganisation(){
       permissions,
       saveState,
       visibleOrdersForCurrentUser,
+      eventHub,
+      soParticipantsForOrder,
       orderTotal,
       orderVendors,
       orderVendor,
@@ -1270,11 +1386,40 @@ function mountOrganisation(){
       ALL_LOCATIONS,
       formatOrgUnit,
       pushActivity,
-      nowIso
+      nowIso,
+      eventHub,
+      soParticipantsForOrder
     });
   }
 
   // ---------- View: Orders (apps/so_orders) ----------
+
+  function soParticipantsForOrder(order){
+    const parts = [];
+    if(order && order.ownerId) parts.push(String(order.ownerId));
+
+    // Dept lead from orgId (preferred)
+    let deptId = null;
+    try{
+      const orgUnit = order && order.orgId ? ORG_BY_ID[order.orgId] : null;
+      deptId = orgUnit && orgUnit.deptId ? orgUnit.deptId : null;
+    }catch(_){ deptId = null; }
+
+    if(!deptId && order && order.orgId){
+      // fallback: orgId can be unit id, try map
+      const ou = ORG_BY_ID[order.orgId];
+      if(ou && ou.deptId) deptId = ou.deptId;
+    }
+
+    const leadId = deptId && LEADERSHIP && LEADERSHIP.deptLeadByDeptId ? LEADERSHIP.deptLeadByDeptId[deptId] : null;
+    if(leadId) parts.push(String(leadId));
+
+    if(LEADERSHIP && LEADERSHIP.procurementChiefId) parts.push(String(LEADERSHIP.procurementChiefId));
+
+    // unique
+    return Array.from(new Set(parts.filter(Boolean)));
+  }
+
 
   function getSoOrdersCtx(){
     return {
@@ -1298,6 +1443,8 @@ function mountOrganisation(){
       orderDeptLabel,
       orderCostCenterLabel,
       visibleOrdersForCurrentUser,
+      eventHub,
+      soParticipantsForOrder,
       orderGateReason: orderGateReasonText
     };
   }
@@ -1326,6 +1473,8 @@ function mountOrganisation(){
       state,
       permissions,
       visibleOrdersForCurrentUser,
+      eventHub,
+      soParticipantsForOrder,
       saveState,
       orderTotal,
       orderVendors,
