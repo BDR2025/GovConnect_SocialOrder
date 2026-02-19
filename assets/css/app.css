@@ -530,6 +530,9 @@ textarea{ width:100%; resize:vertical; }
 .pill--danger{ border-color:rgba(var(--danger-rgb),.25); background:rgba(var(--danger-rgb),.12); }
 .pill--accent{ border-color:rgba(var(--accent-rgb),.25); background:rgba(var(--accent-rgb),.12); }
 
+button.pill{ cursor:pointer; }
+button.pill:disabled{ cursor:not-allowed; opacity:.6; }
+
 .btn{
   padding:10px 12px;
   border-radius:12px;
@@ -546,6 +549,12 @@ textarea{ width:100%; resize:vertical; }
   border-color:rgba(var(--accent-rgb),.30);
 }
 .btn--primary:hover{ background:rgba(var(--accent-rgb),.24); }
+
+.btn--sm{
+  padding:6px 10px;
+  border-radius:10px;
+  font-size:12px;
+}
 
 .row{ display:flex; gap:10px; align-items:center; }
 .row--space{ justify-content:space-between; }
@@ -573,6 +582,13 @@ textarea{ width:100%; resize:vertical; }
 }
 .callout__title{ font-weight:900; margin-bottom:4px; }
 .callout__text{ color:var(--text); opacity:.92; }
+
+.callout__actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
 
 .callout--warn{ border-color:rgba(var(--warn-rgb),.22); background:rgba(var(--warn-rgb),.08); }
 
@@ -1805,4 +1821,359 @@ body:not(.is-in-app) #sidebar-app{ display:none; }
   align-items:center;
   gap:8px;
   flex:0 0 auto;
+}
+
+
+/* ------------------------------------------------------------
+   Raumbuchung (Demo)
+   - bewusst leichtgewichtig, nutzt bestehende Shell-Komponenten
+------------------------------------------------------------ */
+
+.roomFilters{
+  display:grid;
+  grid-template-columns: 1.1fr 160px 150px 140px 120px;
+  gap:10px;
+}
+@media (max-width: 980px){
+  .roomFilters{ grid-template-columns: 1fr 1fr; }
+}
+
+.roomTags{ display:flex; flex-wrap:wrap; gap:6px; }
+.roomTag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--line2);
+  background:var(--ui-bg);
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  color:var(--text);
+  opacity:.92;
+}
+.roomTag--ghost{ opacity:.7; }
+
+.roomGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap:12px;
+}
+
+.roomCard{
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+  background:var(--card-bg);
+  display:flex;
+  flex-direction:column;
+  min-height: 100%;
+}
+
+.roomCard__img{
+  height:160px;
+  background:var(--ui-bg);
+  border-bottom:1px solid var(--line);
+}
+.roomCard__img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.roomCard__body{
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  flex: 1 1 auto;
+}
+
+.roomCard__title{
+  font-weight:950;
+  font-size:16px;
+  line-height:1.15;
+}
+.roomCard__meta{ color:var(--muted); font-size:12px; margin-top:2px; }
+
+.roomCard__foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:auto;
+}
+
+.status--free{ border-color:rgba(var(--accent2-rgb),.22); background:rgba(var(--accent2-rgb),.10); }
+.status--free::before{ background:var(--accent2); }
+.status--busy{ border-color:rgba(var(--danger-rgb),.25); background:rgba(var(--danger-rgb),.10); }
+.status--busy::before{ background:var(--danger); }
+
+.roomModal{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.roomModal__hero{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+@media (max-width: 720px){
+  .roomModal__hero{ flex-direction:column; }
+}
+
+.roomModal__thumb{
+  width:220px;
+  height:140px;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--ui-bg);
+  flex:0 0 auto;
+}
+.roomModal__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+.roomModal__heroMain{ min-width:0; }
+.roomModal__heroTitle{ font-weight:950; font-size:18px; }
+.roomModal__heroSub{ color:var(--muted); margin-top:2px; }
+
+
+/* ------------------------------------------------------------
+   Raumbuchung (rb_*) – Room Booking UI
+   - Liste zeigt kompakte, responsive Thumbnails
+   - Große Bilder erscheinen nur im Detail- bzw. Buchungs-Modal
+------------------------------------------------------------ */
+
+.rbRow{
+  display:grid;
+  grid-template-columns: 1.2fr 180px 140px 120px;
+  gap:10px;
+  align-items:end;
+}
+@media (max-width: 980px){
+  .rbRow{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px){
+  .rbRow{ grid-template-columns: 1fr; }
+}
+
+.rbFilters{
+  display:grid;
+  grid-template-columns: minmax(160px, 220px) minmax(160px, 220px) 1fr;
+  gap:10px;
+}
+@media (max-width: 980px){
+  .rbFilters{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px){
+  .rbFilters{ grid-template-columns: 1fr; }
+}
+
+/* RB: saubere Form-Baselines (Safari-safe)
+   Ziel: Label klar über Feld, keine Überlappung, gleiche Feldhöhe. */
+.rbRow > .rbField,
+.rbFilters > div{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.rbRow .label,
+.rbFilters .label{
+  display:block;
+}
+
+.rbRow input,
+.rbRow select,
+.rbFilters input,
+.rbFilters select{
+  width:100%;
+  height:44px;
+  padding-top:10px;
+  padding-bottom:10px;
+}
+
+/* Selects behalten die native Pfeil-Optik (verwaltungsnah). */
+
+.rbEquip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.rbEquipHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.rbEquipSelected{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.rbCheck{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid var(--line2);
+  background:var(--ui-bg);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  color:var(--text);
+  opacity:.92;
+  white-space: nowrap;
+  max-width: 260px;
+  overflow:hidden;
+  text-overflow: ellipsis;
+}
+.rbCheck input{ transform: translateY(0.5px); }
+
+.rbGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap:12px;
+}
+@media (max-width: 420px){
+  .rbGrid{ grid-template-columns: 1fr; }
+}
+
+.rbRoom{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--card-bg);
+  padding:12px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.rbRoom__img{
+  --rb-thumb: clamp(96px, 14vw, 150px);
+  width: var(--rb-thumb);
+  height: var(--rb-thumb);
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--ui-bg);
+  flex:0 0 auto;
+}
+.rbRoom__img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.rbRoom__body{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.rbRoom__title{
+  font-weight:950;
+  font-size:16px;
+  line-height:1.2;
+}
+
+.rbRoom__eq{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+
+.rbPill{
+  font-size:11px;
+  padding:4px 8px;
+}
+
+.rbMy{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.rbMy__item{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+  background:var(--card-bg);
+}
+@media (max-width: 720px){
+  .rbMy__item{ flex-direction:column; }
+}
+
+.rbMy__actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.rbModal{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.rbModal__head{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+@media (max-width: 720px){
+  .rbModal__head{ flex-direction:column; }
+}
+
+.rbModal__img{
+  width: clamp(160px, 26vw, 260px);
+  height: clamp(110px, 18vw, 170px);
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--ui-bg);
+  flex:0 0 auto;
+}
+
+.rbModal__img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.rbModal__title{
+  font-weight:950;
+  font-size:18px;
+}
+
+.rbRoomDetail__img{
+  width:100%;
+  height: clamp(220px, 36vw, 360px);
+  border-radius:16px;
+  border:1px solid var(--line);
+  object-fit:cover;
+  display:block;
+  background:var(--ui-bg);
+}
+
+.rbField{ display:flex; flex-direction:column; gap:6px; }
+
+.rbForm{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+}
+@media (max-width: 720px){
+  .rbForm{ grid-template-columns: 1fr; }
 }
